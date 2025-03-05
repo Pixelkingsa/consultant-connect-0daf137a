@@ -70,10 +70,10 @@ const Index = () => {
                 The Opportunity
               </span>
               <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-6">
-                How Our Consultant Program Works
+                How Our Vamna Agent Program Works
               </h2>
               <p className="text-foreground/70">
-                Join Vamna Fragrances as a consultant and transform your passion for scents into a rewarding business opportunity with flexible hours and unlimited earning potential.
+                Join Vamna Fragrances as a Vamna Agent and transform your passion for scents into a rewarding business opportunity with flexible hours and unlimited earning potential.
               </p>
             </div>
             
@@ -121,10 +121,10 @@ const Index = () => {
                 Success Stories
               </span>
               <h2 className="text-3xl md:text-4xl font-medium tracking-tight mb-6">
-                Hear From Our Consultants
+                Hear From Our Vamna Agents
               </h2>
               <p className="text-foreground/70">
-                Discover how Vamna Fragrances has transformed the lives of our consultants, providing them with financial freedom and personal growth.
+                Discover how Vamna Fragrances has transformed the lives of our Vamna Agents, providing them with financial freedom and personal growth.
               </p>
             </div>
             
@@ -141,7 +141,7 @@ const Index = () => {
                   <div className="flex items-center space-x-4 mb-6">
                     <img 
                       src={`https://i.pravatar.cc/100?img=${i+15}`} 
-                      alt="Consultant" 
+                      alt="Vamna Agent" 
                       className="w-14 h-14 rounded-full object-cover border-2 border-white/50"
                     />
                     <div>
@@ -156,9 +156,9 @@ const Index = () => {
                   
                   <p className="text-foreground/80 italic">
                     {[
-                      "Joining Vamna Fragrances was the best decision I've made. In just 18 months, I've built a team of 25 consultants and achieved Gold Leader status. The financial freedom has allowed me to quit my 9-5 job.",
-                      "I started as a part-time consultant while maintaining my day job. Within a year, I was earning more from Vamna than my corporate salary. The supportive community and training made all the difference.",
-                      "As a stay-at-home mom, Vamna Fragrances gave me the perfect opportunity to earn income while maintaining flexibility for my family. I now lead a team of 15 consultants and love the sense of achievement."
+                      "Joining Vamna Fragrances was the best decision I've made. In just 18 months, I've built a team of 25 Vamna Agents and achieved Gold Leader status. The financial freedom has allowed me to quit my 9-5 job.",
+                      "I started as a part-time Vamna Agent while maintaining my day job. Within a year, I was earning more from Vamna than my corporate salary. The supportive community and training made all the difference.",
+                      "As a stay-at-home mom, Vamna Fragrances gave me the perfect opportunity to earn income while maintaining flexibility for my family. I now lead a team of 15 Vamna Agents and love the sense of achievement."
                     ][i]}
                   </p>
                 </motion.div>
@@ -181,12 +181,12 @@ const Index = () => {
                 Ready to Start Your Journey?
               </h2>
               <p className="text-primary-foreground/80 mb-8 max-w-2xl mx-auto">
-                Join our team of successful consultants today and begin earning generous commissions while sharing fragrances you love.
+                Join our team of successful Vamna Agents today and begin earning generous commissions while sharing fragrances you love.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Link to="/auth?register=true">
                   <Button size="lg" variant="secondary" className="w-full sm:w-auto">
-                    Become a Consultant
+                    Become a Vamna Agent
                   </Button>
                 </Link>
                 <Link to="/products">

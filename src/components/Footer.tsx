@@ -14,7 +14,7 @@ const Footer = () => {
               Vamna<span className="text-accent font-normal">.</span>
             </Link>
             <p className="text-primary-foreground/80 text-sm max-w-xs">
-              Join our team of fragrance consultants and start your journey to financial freedom.
+              Join our team of fragrance Vamna Agents and start your journey to financial freedom.
             </p>
             <div className="flex space-x-4 pt-2">
               <a href="#" className="text-primary-foreground/80 hover:text-accent transition-colors" aria-label="Instagram">
@@ -51,7 +51,7 @@ const Footer = () => {
           </div>
           
           <div className="space-y-4">
-            <h3 className="text-sm font-medium uppercase tracking-wider">Consultants</h3>
+            <h3 className="text-sm font-medium uppercase tracking-wider">Vamna Agents</h3>
             <ul className="space-y-2">
               <li>
                 <Link to="/opportunity" className="text-primary-foreground/80 hover:text-accent text-sm transition-colors">
@@ -65,7 +65,7 @@ const Footer = () => {
               </li>
               <li>
                 <Link to="/dashboard" className="text-primary-foreground/80 hover:text-accent text-sm transition-colors">
-                  Consultant Login
+                  Agent Login
                 </Link>
               </li>
             </ul>

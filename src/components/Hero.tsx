@@ -22,13 +22,13 @@ const Hero = () => {
               transition={{ duration: 0.6 }}
             >
               <span className="inline-block px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium tracking-wide mb-4">
-                Become a Consultant
+                Become a Vamna Agent
               </span>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-medium tracking-tight text-balance leading-tight">
                 Transform Passion into <span className="text-accent">Prosperity</span>
               </h1>
               <p className="mt-6 text-lg text-foreground/80 max-w-xl">
-                Join Vamna Fragrances as a consultant and discover a rewarding business opportunity that lets you share exquisite scents while earning generous commissions.
+                Join Vamna Fragrances as a Vamna Agent and discover a rewarding business opportunity that lets you share exquisite scents while earning generous commissions.
               </p>
             </motion.div>
             
@@ -64,7 +64,7 @@ const Hero = () => {
                   >
                     <img 
                       src={`https://i.pravatar.cc/100?img=${i+10}`} 
-                      alt="Consultant" 
+                      alt="Vamna Agent" 
                       className="w-full h-full object-cover"
                     />
                   </div>
@@ -72,7 +72,7 @@ const Hero = () => {
               </div>
               <div>
                 <p className="text-sm text-foreground/80">
-                  Joined by <span className="font-medium text-foreground">2,000+</span> consultants
+                  Joined by <span className="font-medium text-foreground">2,000+</span> Vamna Agents
                 </p>
               </div>
             </motion.div>
