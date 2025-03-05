@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { 
   Card, 
@@ -15,40 +15,60 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { motion } from "framer-motion";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
-const AuthForm = () => {
+interface AuthFormProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+}
+
+const AuthForm = ({ activeTab, setActiveTab }: AuthFormProps) => {
   const [searchParams] = useSearchParams();
-  const defaultTab = searchParams.get("register") ? "register" : "login";
-  const [tab, setTab] = useState(defaultTab);
   const navigate = useNavigate();
   const { toast } = useToast();
   
+  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [loginForm, setLoginForm] = useState({ email: "", password: "" });
   const [registerForm, setRegisterForm] = useState({
-    firstName: "",
-    lastName: "",
+    fullName: "",
     email: "",
     password: "",
     confirmPassword: "",
     referralCode: searchParams.get("ref") || "",
   });
   
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would handle authentication with Supabase
+    setIsLoading(true);
     
-    toast({
-      title: "Login successful",
-      description: "Welcome back to Vamna Fragrances.",
-    });
-    
-    // Redirect to dashboard after login
-    navigate("/dashboard");
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: loginForm.email,
+        password: loginForm.password,
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Login successful",
+        description: "Welcome back to Vamna Fragrances.",
+      });
+      
+      // Navigation is handled by the onAuthStateChange listener in the Auth component
+    } catch (error: any) {
+      toast({
+        title: "Login failed",
+        description: error.message || "Please check your credentials and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (registerForm.password !== registerForm.confirmPassword) {
@@ -60,15 +80,37 @@ const AuthForm = () => {
       return;
     }
     
-    // Here you would handle registration with Supabase
+    setIsLoading(true);
     
-    toast({
-      title: "Registration successful",
-      description: "Welcome to Vamna Fragrances. You can now log in.",
-    });
-    
-    // Switch to login tab after successful registration
-    setTab("login");
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email: registerForm.email,
+        password: registerForm.password,
+        options: {
+          data: {
+            full_name: registerForm.fullName,
+          },
+        },
+      });
+      
+      if (error) throw error;
+      
+      toast({
+        title: "Registration successful",
+        description: "Welcome to Vamna Fragrances. You can now log in.",
+      });
+      
+      // Switch to login tab after successful registration
+      setActiveTab("login");
+    } catch (error: any) {
+      toast({
+        title: "Registration failed",
+        description: error.message || "Please check your information and try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
   
   return (
@@ -81,10 +123,10 @@ const AuthForm = () => {
       <Card className="shadow-lg">
         <CardHeader className="space-y-2">
           <CardTitle className="text-2xl font-medium text-center">
-            {tab === "login" ? "Welcome Back" : "Join Our Team"}
+            {activeTab === "login" ? "Welcome Back" : "Join Our Team"}
           </CardTitle>
           <CardDescription className="text-center">
-            {tab === "login" 
+            {activeTab === "login" 
               ? "Sign in to your consultant account" 
               : "Begin your journey as a Vamna Fragrances consultant"
             }
@@ -92,9 +134,9 @@ const AuthForm = () => {
         </CardHeader>
         <CardContent>
           <Tabs
-            defaultValue={tab}
-            value={tab}
-            onValueChange={setTab}
+            defaultValue={activeTab}
+            value={activeTab}
+            onValueChange={setActiveTab}
             className="w-full"
           >
             <TabsList className="grid grid-cols-2 mb-6">
@@ -113,6 +155,7 @@ const AuthForm = () => {
                     required
                     value={loginForm.email}
                     onChange={(e) => setLoginForm({...loginForm, email: e.target.value})}
+                    disabled={isLoading}
                   />
                 </div>
                 
@@ -120,11 +163,15 @@ const AuthForm = () => {
                   <div className="flex items-center justify-between">
                     <Label htmlFor="password">Password</Label>
                     <a 
-                      href="#" 
+                      href="/reset-password" 
                       className="text-xs text-accent hover:underline"
                       onClick={(e) => {
                         e.preventDefault();
-                        // Handle forgot password
+                        // Here you would redirect to password reset
+                        toast({
+                          title: "Not implemented",
+                          description: "Password reset functionality is not yet implemented.",
+                        });
                       }}
                     >
                       Forgot password?
@@ -138,11 +185,13 @@ const AuthForm = () => {
                       required
                       value={loginForm.password}
                       onChange={(e) => setLoginForm({...loginForm, password: e.target.value})}
+                      disabled={isLoading}
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -153,35 +202,31 @@ const AuthForm = () => {
                   </div>
                 </div>
                 
-                <Button type="submit" className="w-full">
-                  Sign In
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Signing In
+                    </>
+                  ) : (
+                    "Sign In"
+                  )}
                 </Button>
               </form>
             </TabsContent>
             
             <TabsContent value="register">
               <form onSubmit={handleRegisterSubmit} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="firstName">First Name</Label>
-                    <Input 
-                      id="firstName"
-                      placeholder="Your first name"
-                      required
-                      value={registerForm.firstName}
-                      onChange={(e) => setRegisterForm({...registerForm, firstName: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="lastName">Last Name</Label>
-                    <Input 
-                      id="lastName"
-                      placeholder="Your last name"
-                      required
-                      value={registerForm.lastName}
-                      onChange={(e) => setRegisterForm({...registerForm, lastName: e.target.value})}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <Label htmlFor="fullName">Full Name</Label>
+                  <Input 
+                    id="fullName"
+                    placeholder="Your full name"
+                    required
+                    value={registerForm.fullName}
+                    onChange={(e) => setRegisterForm({...registerForm, fullName: e.target.value})}
+                    disabled={isLoading}
+                  />
                 </div>
                 
                 <div className="space-y-2">
@@ -193,6 +238,7 @@ const AuthForm = () => {
                     required
                     value={registerForm.email}
                     onChange={(e) => setRegisterForm({...registerForm, email: e.target.value})}
+                    disabled={isLoading}
                   />
                 </div>
                 
@@ -206,11 +252,13 @@ const AuthForm = () => {
                       required
                       value={registerForm.password}
                       onChange={(e) => setRegisterForm({...registerForm, password: e.target.value})}
+                      disabled={isLoading}
                     />
                     <button
                       type="button"
                       className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                       onClick={() => setShowPassword(!showPassword)}
+                      disabled={isLoading}
                     >
                       {showPassword ? (
                         <EyeOff className="h-4 w-4" />
@@ -230,6 +278,7 @@ const AuthForm = () => {
                     required
                     value={registerForm.confirmPassword}
                     onChange={(e) => setRegisterForm({...registerForm, confirmPassword: e.target.value})}
+                    disabled={isLoading}
                   />
                 </div>
                 
@@ -240,11 +289,19 @@ const AuthForm = () => {
                     placeholder="Enter referral code if you have one"
                     value={registerForm.referralCode}
                     onChange={(e) => setRegisterForm({...registerForm, referralCode: e.target.value})}
+                    disabled={isLoading}
                   />
                 </div>
                 
-                <Button type="submit" className="w-full">
-                  Create Account
+                <Button type="submit" className="w-full" disabled={isLoading}>
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
               </form>
             </TabsContent>
