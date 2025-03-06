@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -48,18 +47,25 @@ const RegisterForm = ({ isLoading, setIsLoading, onSuccess }: RegisterFormProps)
           data: {
             full_name: registerForm.fullName,
           },
+          emailRedirectTo: window.location.origin,
         },
       });
       
       if (error) throw error;
       
-      toast({
-        title: "Registration successful",
-        description: "Welcome to Vamna Fragrances. You can now log in.",
-      });
-      
-      // Switch to login tab after successful registration
-      onSuccess();
+      if (data.session) {
+        toast({
+          title: "Registration successful",
+          description: "Welcome to Vamna Fragrances. You are now logged in.",
+        });
+        window.location.href = '/dashboard';
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Please check your email to verify your account before logging in.",
+        });
+        onSuccess();
+      }
     } catch (error: any) {
       toast({
         title: "Registration failed",
