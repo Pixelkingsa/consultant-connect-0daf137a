@@ -95,7 +95,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Sidebar */}
       <aside className={`fixed inset-y-0 left-0 z-10 w-64 bg-black text-white transition-transform duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
         <div className="p-4 flex items-center justify-center border-b border-white/10 h-16">
-          <h1 className="text-2xl font-bold">VAMNA<br/>FRAGRANCES</h1>
+          <img 
+            src="/lovable-uploads/a79a2128-78e1-4f37-99af-a9640dcc8da6.png" 
+            alt="Vamna Fragrances" 
+            className="h-12 w-auto"
+          />
         </div>
         
         <nav className="py-6">
