@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -17,7 +17,8 @@ import {
   LogOut,
   Bell,
   X,
-  ChevronDown
+  ChevronDown,
+  LayoutDashboard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -29,6 +30,7 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -90,6 +92,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  // Check if link is active
+  const isActive = (path: string) => {
+    return location.pathname === path;
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -105,37 +112,64 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <nav className="py-6">
           <ul className="space-y-1 px-2">
             <li>
-              <Link to="/dashboard" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
-                <Home className="h-5 w-5" />
-                <span>Dashboard</span>
+              <Link 
+                to="/user-dashboard"
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/user-dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
+                <LayoutDashboard className="h-5 w-5" />
+                <span>User Dashboard</span>
               </Link>
             </li>
             <li>
-              <Link to="/shop" className="flex items-center gap-3 px-4 py-3 rounded-md bg-white/10">
+              <Link 
+                to="/dashboard" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
+                <Home className="h-5 w-5" />
+                <span>Home</span>
+              </Link>
+            </li>
+            <li>
+              <Link 
+                to="/shop" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/shop') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <ShoppingBag className="h-5 w-5" />
                 <span>Shop</span>
               </Link>
             </li>
             <li>
-              <Link to="/orders" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/orders" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/orders') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <ClipboardList className="h-5 w-5" />
                 <span>Orders</span>
               </Link>
             </li>
             <li>
-              <Link to="/referals" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/referals" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/referals') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <Share2 className="h-5 w-5" />
                 <span>Referals</span>
               </Link>
             </li>
             <li>
-              <Link to="/profile" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/profile" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/profile') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <User className="h-5 w-5" />
                 <span>Profile</span>
               </Link>
             </li>
             <li>
-              <Link to="/news" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/news" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/news') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <Bell className="h-5 w-5" />
                 <span>News</span>
               </Link>
@@ -146,13 +180,19 @@ const AppLayout = ({ children }: AppLayoutProps) => {
 
           <ul className="space-y-1 px-2">
             <li>
-              <Link to="/settings" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/settings" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/settings') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <Settings className="h-5 w-5" />
                 <span>Settings</span>
               </Link>
             </li>
             <li>
-              <Link to="/help" className="flex items-center gap-3 px-4 py-3 rounded-md hover:bg-white/10">
+              <Link 
+                to="/help" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/help') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+              >
                 <HelpCircle className="h-5 w-5" />
                 <span>Help & Support</span>
               </Link>
