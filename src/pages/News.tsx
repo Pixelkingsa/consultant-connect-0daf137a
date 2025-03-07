@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Bell, Calendar, ChevronRight, Star, ShoppingBag, TrendingUp, 
-  Award, MessageSquare, FileText, Users
+  Award, MessageSquare, FileText, Users, ArrowRight
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -32,7 +31,6 @@ const News = () => {
   const [loading, setLoading] = useState(true);
   const [selectedNews, setSelectedNews] = useState<NewsItem | null>(null);
   
-  // Mock news data
   const newsItems: NewsItem[] = [
     {
       id: "news-1",
@@ -237,7 +235,6 @@ const News = () => {
                       className="cursor-pointer"
                     >
                       <Card className="overflow-hidden transition-shadow hover:shadow-md border-l-4 border-l-accent">
-                        {/* Same card content as above */}
                         <CardContent className="p-0">
                           <div className="flex flex-col md:flex-row">
                             {item.image && (
@@ -284,7 +281,6 @@ const News = () => {
                 )}
               </TabsContent>
               
-              {/* Similar content structure for other tabs */}
               <TabsContent value="product" className="space-y-6">
                 {newsItems.filter(item => item.category === "product").length > 0 ? (
                   newsItems.filter(item => item.category === "product").map((item, index) => (
@@ -297,7 +293,6 @@ const News = () => {
                       className="cursor-pointer"
                     >
                       <Card className={`overflow-hidden transition-shadow hover:shadow-md ${!item.read ? 'border-l-4 border-l-accent' : ''}`}>
-                        {/* Same card content */}
                         <CardContent className="p-0">
                           <div className="flex flex-col md:flex-row">
                             {item.image && (
@@ -347,7 +342,6 @@ const News = () => {
               </TabsContent>
               
               <TabsContent value="business" className="space-y-6">
-                {/* Similar structure for business updates */}
                 {newsItems.filter(item => item.category === "business").length > 0 ? (
                   newsItems.filter(item => item.category === "business").map((item, index) => (
                     <motion.div
@@ -359,7 +353,6 @@ const News = () => {
                       className="cursor-pointer"
                     >
                       <Card className={`overflow-hidden transition-shadow hover:shadow-md ${!item.read ? 'border-l-4 border-l-accent' : ''}`}>
-                        {/* Same card content structure */}
                         <CardContent className="p-0">
                           <div className="flex flex-col md:flex-row">
                             {item.image && (
@@ -409,7 +402,6 @@ const News = () => {
               </TabsContent>
               
               <TabsContent value="event" className="space-y-6">
-                {/* Similar structure for event updates */}
                 {newsItems.filter(item => item.category === "event").length > 0 ? (
                   newsItems.filter(item => item.category === "event").map((item, index) => (
                     <motion.div
@@ -421,7 +413,6 @@ const News = () => {
                       className="cursor-pointer"
                     >
                       <Card className={`overflow-hidden transition-shadow hover:shadow-md ${!item.read ? 'border-l-4 border-l-accent' : ''}`}>
-                        {/* Same card content structure */}
                         <CardContent className="p-0">
                           <div className="flex flex-col md:flex-row">
                             {item.image && (
@@ -509,7 +500,7 @@ const News = () => {
                     Save
                   </Button>
                   <Button variant="ghost" size="sm" className="gap-1">
-                    <Share className="h-4 w-4" />
+                    <ArrowRight className="h-4 w-4" />
                     Share
                   </Button>
                 </div>

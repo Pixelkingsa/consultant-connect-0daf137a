@@ -11,11 +11,27 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { User, Mail, Phone, MapPin, Award, Calendar } from "lucide-react";
 
+// Define extended profile type to include the missing fields
+interface ExtendedProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+  rank: string;
+  team_size: number;
+  phone?: string;
+  address?: string;
+  city?: string;
+  state?: string;
+  zip?: string;
+}
+
 const Profile = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
+  const [profile, setProfile] = useState<ExtendedProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
@@ -50,7 +66,7 @@ const Profile = () => {
         if (profileError) {
           console.error("Error fetching profile:", profileError);
         } else {
-          setProfile(profile);
+          setProfile(profile as ExtendedProfile);
           // Set initial form data from profile
           setFormData({
             full_name: profile?.full_name || "",
@@ -90,7 +106,7 @@ const Profile = () => {
           city: formData.city,
           state: formData.state,
           zip: formData.zip,
-          updated_at: new Date(),
+          updated_at: new Date().toISOString(), // Convert Date to string
         })
         .eq("id", user.id);
 
@@ -101,8 +117,16 @@ const Profile = () => {
         description: "Your profile information has been updated successfully.",
       });
       
-      // Update local profile state
-      setProfile(prev => ({ ...prev, ...formData }));
+      // Update local profile state with type safety
+      setProfile(prev => prev ? { 
+        ...prev, 
+        full_name: formData.full_name,
+        phone: formData.phone,
+        address: formData.address,
+        city: formData.city,
+        state: formData.state,
+        zip: formData.zip
+      } : null);
     } catch (error: any) {
       toast({
         title: "Error updating profile",
