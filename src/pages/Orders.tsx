@@ -1,61 +1,64 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { PackageOpen, Clock, CheckCircle, XCircle, FileText, ChevronRight } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { PackageOpen, TruckIcon, CheckCircle, Clock, Search, FilterIcon, X } from "lucide-react";
+
+interface Order {
+  id: string;
+  date: string;
+  total: number;
+  status: "processing" | "shipped" | "delivered" | "cancelled";
+  items: {
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    image: string;
+  }[];
+}
 
 const Orders = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock orders data - in a real app this would come from the backend
-  const orders = [
+  const [orders, setOrders] = useState<Order[]>([
     {
-      id: "ORD-1234",
-      date: "2023-06-15",
+      id: "ORD-2023-1001",
+      date: "2023-10-25",
+      total: 159.97,
       status: "delivered",
-      total: 125.99,
       items: [
-        { name: "Vamna Essence Parfum", quantity: 1, price: 79.99 },
-        { name: "Vamna Body Lotion", quantity: 1, price: 45.99 }
+        { id: "prod-1", name: "Vamna Essence Parfum", price: 79.99, quantity: 1, image: "https://i.pravatar.cc/150?img=1" },
+        { id: "prod-2", name: "Vamna Body Lotion", price: 39.99, quantity: 2, image: "https://i.pravatar.cc/150?img=2" }
       ]
     },
     {
-      id: "ORD-1235",
-      date: "2023-06-28",
-      status: "shipped",
+      id: "ORD-2023-1002",
+      date: "2023-11-12",
       total: 89.99,
+      status: "shipped",
       items: [
-        { name: "Vamna Cologne for Men", quantity: 1, price: 89.99 }
+        { id: "prod-3", name: "Vamna Cologne for Men", price: 89.99, quantity: 1, image: "https://i.pravatar.cc/150?img=3" }
       ]
     },
     {
-      id: "ORD-1236",
-      date: "2023-07-05",
+      id: "ORD-2023-1003",
+      date: "2023-12-03",
+      total: 124.98,
       status: "processing",
-      total: 159.98,
       items: [
-        { name: "Vamna Premium Collection", quantity: 1, price: 159.98 }
-      ]
-    },
-    {
-      id: "ORD-1237",
-      date: "2023-07-12",
-      status: "cancelled",
-      total: 45.99,
-      items: [
-        { name: "Vamna Body Mist", quantity: 1, price: 45.99 }
+        { id: "prod-4", name: "Vamna Gift Set", price: 124.98, quantity: 1, image: "https://i.pravatar.cc/150?img=4" }
       ]
     }
-  ];
+  ]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -78,37 +81,37 @@ const Orders = () => {
     
     checkUser();
   }, [navigate]);
-  
-  const getStatusBadge = (status: string) => {
+
+  const getStatusBadge = (status: Order["status"]) => {
     switch (status) {
-      case "delivered":
-        return <Badge className="bg-green-100 text-green-800 hover:bg-green-200">Delivered</Badge>;
-      case "shipped":
-        return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-200">Shipped</Badge>;
       case "processing":
-        return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-200">Processing</Badge>;
+        return <Badge variant="outline" className="bg-blue-50 text-blue-500 border-blue-200">Processing</Badge>;
+      case "shipped":
+        return <Badge variant="outline" className="bg-amber-50 text-amber-500 border-amber-200">Shipped</Badge>;
+      case "delivered":
+        return <Badge variant="outline" className="bg-green-50 text-green-500 border-green-200">Delivered</Badge>;
       case "cancelled":
-        return <Badge className="bg-red-100 text-red-800 hover:bg-red-200">Cancelled</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-500 border-red-200">Cancelled</Badge>;
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
   };
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: Order["status"]) => {
     switch (status) {
-      case "delivered":
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
-      case "shipped":
-        return <PackageOpen className="h-5 w-5 text-blue-600" />;
       case "processing":
-        return <Clock className="h-5 w-5 text-yellow-600" />;
+        return <Clock className="h-5 w-5 text-blue-500" />;
+      case "shipped":
+        return <TruckIcon className="h-5 w-5 text-amber-500" />;
+      case "delivered":
+        return <CheckCircle className="h-5 w-5 text-green-500" />;
       case "cancelled":
-        return <XCircle className="h-5 w-5 text-red-600" />;
+        return <X className="h-5 w-5 text-red-500" />;
       default:
         return null;
     }
   };
-  
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -121,10 +124,19 @@ const Orders = () => {
   
   return (
     <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
+      <div className="container max-w-6xl mx-auto px-4 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">My Orders</h1>
-          <Button onClick={() => navigate("/shop")}>Continue Shopping</Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm">
+              <Search className="h-4 w-4 mr-2" />
+              Search
+            </Button>
+            <Button variant="outline" size="sm">
+              <FilterIcon className="h-4 w-4 mr-2" />
+              Filter
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="all" className="w-full">
@@ -133,205 +145,218 @@ const Orders = () => {
             <TabsTrigger value="processing">Processing</TabsTrigger>
             <TabsTrigger value="shipped">Shipped</TabsTrigger>
             <TabsTrigger value="delivered">Delivered</TabsTrigger>
-          </TabsContent>
-          
+          </TabsList>
+
           <TabsContent value="all" className="space-y-6">
-            {orders.length > 0 ? (
-              orders.map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  <CardHeader className="bg-gray-50 py-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-2 items-center">
+            {orders.map((order) => (
+              <Card key={order.id} className="overflow-hidden">
+                <CardHeader className="bg-gray-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-lg font-medium">Order #{order.id}</CardTitle>
+                      <p className="text-sm text-muted-foreground">Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
-                        <CardTitle className="text-lg">{order.id}</CardTitle>
                         {getStatusBadge(order.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Ordered on {new Date(order.date).toLocaleDateString()}
+                      <Button variant="outline" size="sm">View Details</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-0">
+                      <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-2 border-b last:border-b-0">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">${item.price.toFixed(2)}</p>
-                      </div>
-                    ))}
-                    
-                    <div className="flex justify-between items-center mt-6">
-                      <div className="text-lg font-semibold">
-                        Total: ${order.total.toFixed(2)}
-                      </div>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        View Details
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                  ))}
+                  <div className="flex justify-between items-center pt-4">
+                    <div className="text-sm text-muted-foreground">
+                      {order.items.reduce((acc, item) => acc + item.quantity, 0)} items
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <PackageOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium mb-2">No orders yet</h3>
-                <p className="text-muted-foreground mb-4">You haven't placed any orders yet.</p>
-                <Button onClick={() => navigate("/shop")}>Browse Products</Button>
-              </div>
-            )}
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Order Total</p>
+                      <p className="text-lg font-medium">${order.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </TabsContent>
           
           <TabsContent value="processing" className="space-y-6">
-            {orders.filter(o => o.status === "processing").length > 0 ? (
-              orders.filter(o => o.status === "processing").map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  {/* ... Same card content as above ... */}
-                  <CardHeader className="bg-gray-50 py-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-2 items-center">
+            {orders.filter(order => order.status === "processing").map((order) => (
+              <Card key={order.id}>
+                <CardHeader className="bg-gray-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-lg font-medium">Order #{order.id}</CardTitle>
+                      <p className="text-sm text-muted-foreground">Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
-                        <CardTitle className="text-lg">{order.id}</CardTitle>
                         {getStatusBadge(order.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Ordered on {new Date(order.date).toLocaleDateString()}
+                      <Button variant="outline" size="sm">View Details</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-0">
+                      <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-2 border-b last:border-b-0">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">${item.price.toFixed(2)}</p>
-                      </div>
-                    ))}
-                    
-                    <div className="flex justify-between items-center mt-6">
-                      <div className="text-lg font-semibold">
-                        Total: ${order.total.toFixed(2)}
-                      </div>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        View Details
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                  ))}
+                  <div className="flex justify-between items-center pt-4">
+                    <div className="text-sm text-muted-foreground">
+                      {order.items.reduce((acc, item) => acc + item.quantity, 0)} items
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Order Total</p>
+                      <p className="text-lg font-medium">${order.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {orders.filter(order => order.status === "processing").length === 0 && (
+              <div className="text-center py-12">
                 <Clock className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No processing orders</h3>
-                <p className="text-muted-foreground">You don't have any orders in processing status.</p>
+                <p className="text-muted-foreground">You don't have any orders being processed at the moment.</p>
               </div>
             )}
           </TabsContent>
           
           <TabsContent value="shipped" className="space-y-6">
-            {/* Similar content for shipped orders */}
-            {orders.filter(o => o.status === "shipped").length > 0 ? (
-              orders.filter(o => o.status === "shipped").map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  {/* Similar card structure */}
-                  <CardHeader className="bg-gray-50 py-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-2 items-center">
+            {orders.filter(order => order.status === "shipped").map((order) => (
+              <Card key={order.id}>
+                <CardHeader className="bg-gray-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-lg font-medium">Order #{order.id}</CardTitle>
+                      <p className="text-sm text-muted-foreground">Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
-                        <CardTitle className="text-lg">{order.id}</CardTitle>
                         {getStatusBadge(order.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Ordered on {new Date(order.date).toLocaleDateString()}
+                      <Button variant="outline" size="sm">View Details</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-0">
+                      <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {/* Similar content */}
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-2 border-b last:border-b-0">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">${item.price.toFixed(2)}</p>
-                      </div>
-                    ))}
-                    
-                    <div className="flex justify-between items-center mt-6">
-                      <div className="text-lg font-semibold">
-                        Total: ${order.total.toFixed(2)}
-                      </div>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        View Details
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                  ))}
+                  <div className="flex justify-between items-center pt-4">
+                    <div className="text-sm text-muted-foreground">
+                      {order.items.reduce((acc, item) => acc + item.quantity, 0)} items
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
-                <PackageOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Order Total</p>
+                      <p className="text-lg font-medium">${order.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {orders.filter(order => order.status === "shipped").length === 0 && (
+              <div className="text-center py-12">
+                <TruckIcon className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No shipped orders</h3>
-                <p className="text-muted-foreground">You don't have any orders that are currently shipped.</p>
+                <p className="text-muted-foreground">You don't have any orders being shipped at the moment.</p>
               </div>
             )}
           </TabsContent>
           
           <TabsContent value="delivered" className="space-y-6">
-            {/* Similar content for delivered orders */}
-            {orders.filter(o => o.status === "delivered").length > 0 ? (
-              orders.filter(o => o.status === "delivered").map((order) => (
-                <Card key={order.id} className="overflow-hidden">
-                  {/* Similar card structure */}
-                  <CardHeader className="bg-gray-50 py-4">
-                    <div className="flex justify-between items-center">
-                      <div className="flex gap-2 items-center">
+            {orders.filter(order => order.status === "delivered").map((order) => (
+              <Card key={order.id}>
+                <CardHeader className="bg-gray-50">
+                  <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+                    <div>
+                      <CardTitle className="text-lg font-medium">Order #{order.id}</CardTitle>
+                      <p className="text-sm text-muted-foreground">Placed on {new Date(order.date).toLocaleDateString()}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
                         {getStatusIcon(order.status)}
-                        <CardTitle className="text-lg">{order.id}</CardTitle>
                         {getStatusBadge(order.status)}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        Ordered on {new Date(order.date).toLocaleDateString()}
+                      <Button variant="outline" size="sm">View Details</Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {order.items.map((item) => (
+                    <div key={item.id} className="flex items-center gap-4 py-4 border-b last:border-0">
+                      <div className="w-16 h-16 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                        <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                      </div>
+                      <div className="flex-grow">
+                        <h3 className="font-medium">{item.name}</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Quantity: {item.quantity} × ${item.price.toFixed(2)}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-medium">${(item.price * item.quantity).toFixed(2)}</p>
                       </div>
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    {/* Similar content */}
-                    {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between py-2 border-b last:border-b-0">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">Quantity: {item.quantity}</p>
-                        </div>
-                        <p className="font-medium">${item.price.toFixed(2)}</p>
-                      </div>
-                    ))}
-                    
-                    <div className="flex justify-between items-center mt-6">
-                      <div className="text-lg font-semibold">
-                        Total: ${order.total.toFixed(2)}
-                      </div>
-                      <Button variant="outline" size="sm" className="flex items-center gap-1">
-                        <FileText className="h-4 w-4" />
-                        View Details
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
+                  ))}
+                  <div className="flex justify-between items-center pt-4">
+                    <div className="text-sm text-muted-foreground">
+                      {order.items.reduce((acc, item) => acc + item.quantity, 0)} items
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <div className="text-right">
+                      <p className="text-sm text-muted-foreground">Order Total</p>
+                      <p className="text-lg font-medium">${order.total.toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+            {orders.filter(order => order.status === "delivered").length === 0 && (
+              <div className="text-center py-12">
                 <CheckCircle className="h-12 w-12 mx-auto text-gray-400 mb-4" />
                 <h3 className="text-lg font-medium mb-2">No delivered orders</h3>
                 <p className="text-muted-foreground">You don't have any delivered orders yet.</p>
