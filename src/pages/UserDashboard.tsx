@@ -5,9 +5,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import { Badge } from "@/components/ui/badge";
-import { CircleDollarSign, Users, TrendingUp, Award } from "lucide-react";
+import { CircleDollarSign, Users, TrendingUp, Award, Share2 } from "lucide-react";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -16,14 +16,14 @@ const UserDashboard = () => {
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Sample data for charts
-  const salesData = [
-    { name: "Jan", sales: 250 },
-    { name: "Feb", sales: 420 },
-    { name: "Mar", sales: 380 },
-    { name: "Apr", sales: 530 },
-    { name: "May", sales: 450 },
-    { name: "Jun", sales: 620 },
+  // Enhanced data for the line chart showing both sales and referrals
+  const performanceData = [
+    { month: "Jan", sales: 250, referrals: 5 },
+    { month: "Feb", sales: 420, referrals: 8 },
+    { month: "Mar", sales: 380, referrals: 12 },
+    { month: "Apr", sales: 530, referrals: 15 },
+    { month: "May", sales: 450, referrals: 10 },
+    { month: "Jun", sales: 620, referrals: 18 },
   ];
 
   useEffect(() => {
@@ -106,42 +106,88 @@ const UserDashboard = () => {
             icon={<Users className="h-8 w-8 text-blue-500" />} 
           />
           <StatCard 
-            title="Growth Rate" 
-            value="24%" 
-            description="↑ 7% from last month" 
-            icon={<TrendingUp className="h-8 w-8 text-orange-500" />} 
+            title="Referrals" 
+            value="26" 
+            description="↑ 5 from last month" 
+            icon={<Share2 className="h-8 w-8 text-purple-500" />} 
           />
           <StatCard 
             title="Rank Progress" 
             value="64%" 
             description="To next level: Elite" 
-            icon={<Award className="h-8 w-8 text-purple-500" />} 
+            icon={<Award className="h-8 w-8 text-amber-500" />} 
           />
         </div>
         
-        {/* Charts and more info */}
+        {/* Modern Line Chart */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Sales Performance</CardTitle>
-              <CardDescription>Your sales over the last 6 months</CardDescription>
+          <Card className="lg:col-span-2 overflow-hidden border-0 shadow-lg bg-gradient-to-br from-white to-gray-50">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-xl font-bold">Performance Metrics</CardTitle>
+              <CardDescription>Sales and referral performance over time</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={salesData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="sales" fill="#000000" />
-                  </BarChart>
+                  <LineChart
+                    data={performanceData}
+                    margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
+                  >
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                    <XAxis 
+                      dataKey="month" 
+                      tick={{ fill: '#6b7280' }}
+                      axisLine={{ stroke: '#e5e7eb' }}
+                    />
+                    <YAxis 
+                      yAxisId="left"
+                      tick={{ fill: '#6b7280' }}
+                      axisLine={{ stroke: '#e5e7eb' }}
+                    />
+                    <YAxis 
+                      yAxisId="right" 
+                      orientation="right" 
+                      tick={{ fill: '#6b7280' }}
+                      axisLine={{ stroke: '#e5e7eb' }}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.8)', 
+                        borderRadius: '8px', 
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)', 
+                        border: 'none' 
+                      }}
+                    />
+                    <Legend 
+                      verticalAlign="top" 
+                      height={36} 
+                      iconType="circle"
+                    />
+                    <Line 
+                      yAxisId="left"
+                      type="monotone" 
+                      dataKey="sales" 
+                      stroke="#000000" 
+                      strokeWidth={2} 
+                      dot={{ r: 4, strokeWidth: 2 }}
+                      activeDot={{ r: 6, stroke: "#000000", strokeWidth: 2 }}
+                    />
+                    <Line 
+                      yAxisId="right"
+                      type="monotone" 
+                      dataKey="referrals" 
+                      stroke="#8884d8" 
+                      strokeWidth={2} 
+                      dot={{ r: 4, strokeWidth: 2 }}
+                      activeDot={{ r: 6, stroke: "#8884d8", strokeWidth: 2 }}
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
+          <Card className="border-0 shadow-lg">
             <CardHeader>
               <CardTitle>Upcoming Events</CardTitle>
               <CardDescription>Stay updated with important dates</CardDescription>
