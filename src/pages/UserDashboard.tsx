@@ -86,7 +86,7 @@ const UserDashboard = () => {
               Team Size: {profile?.team_size || 0} members
             </Badge>
             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 px-3 py-1">
-              Points: 2,450
+              VP Points: 2,450
             </Badge>
           </div>
         </div>
