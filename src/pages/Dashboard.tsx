@@ -12,6 +12,7 @@ const Dashboard = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [rankInfo, setRankInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,10 +27,10 @@ const Dashboard = () => {
         
         setUser(user);
         
-        // Get user profile
+        // Get user profile with rank information
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select("*, ranks(*)")
           .eq("id", user.id)
           .single();
         
@@ -42,6 +43,7 @@ const Dashboard = () => {
           });
         } else {
           setProfile(profile);
+          setRankInfo(profile.ranks);
         }
       } catch (error) {
         console.error("Error:", error);

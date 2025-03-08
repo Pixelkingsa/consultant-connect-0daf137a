@@ -9,22 +9,59 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Badge } from "@/components/ui/badge";
 import { CircleDollarSign, Users, TrendingUp, Award, Share2 } from "lucide-react";
 
-// Placeholder chart data until we have real data
-const performanceData = [
-  { month: "Jan", sales: 250, referrals: 5 },
-  { month: "Feb", sales: 420, referrals: 8 },
-  { month: "Mar", sales: 380, referrals: 12 },
-  { month: "Apr", sales: 530, referrals: 15 },
-  { month: "May", sales: 450, referrals: 10 },
-  { month: "Jun", sales: 620, referrals: 18 },
-];
-
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
+  const [rankInfo, setRankInfo] = useState<any>(null);
+  const [salesData, setSalesData] = useState<any[]>([]);
+  const [bonusesData, setBonusesData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Format sales data for chart
+  const getPerformanceData = () => {
+    // If we have real sales data, use it; otherwise use placeholder
+    if (salesData.length > 0) {
+      // Group by month and calculate totals
+      const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const monthlyData = months.map(month => ({
+        month,
+        sales: 0,
+        referrals: 0
+      }));
+      
+      // Process sales data
+      salesData.forEach(sale => {
+        const date = new Date(sale.date);
+        const monthIndex = date.getMonth();
+        monthlyData[monthIndex].sales += Number(sale.amount);
+      });
+      
+      return monthlyData;
+    } else {
+      // Return placeholder data if no real data
+      return [
+        { month: "Jan", sales: 250, referrals: 5 },
+        { month: "Feb", sales: 420, referrals: 8 },
+        { month: "Mar", sales: 380, referrals: 12 },
+        { month: "Apr", sales: 530, referrals: 15 },
+        { month: "May", sales: 450, referrals: 10 },
+        { month: "Jun", sales: 620, referrals: 18 },
+      ];
+    }
+  };
+  
+  // Calculate monthly sales total
+  const getMonthlySalesTotal = () => {
+    const currentMonth = new Date().getMonth();
+    const currentMonthSales = salesData.filter(sale => {
+      const saleMonth = new Date(sale.date).getMonth();
+      return saleMonth === currentMonth;
+    });
+    
+    return currentMonthSales.reduce((total, sale) => total + Number(sale.amount), 0);
+  };
 
   useEffect(() => {
     const checkUser = async () => {
@@ -38,10 +75,10 @@ const UserDashboard = () => {
         
         setUser(user);
         
-        // Get user profile
+        // Get user profile with rank information
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select("*, ranks(*)")
           .eq("id", user.id)
           .single();
         
@@ -54,6 +91,33 @@ const UserDashboard = () => {
           });
         } else {
           setProfile(profile);
+          setRankInfo(profile.ranks);
+          
+          // Fetch sales data
+          const { data: salesData, error: salesError } = await supabase
+            .from("sales")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("date", { ascending: false });
+            
+          if (salesError) {
+            console.error("Error fetching sales:", salesError);
+          } else {
+            setSalesData(salesData || []);
+          }
+          
+          // Fetch bonuses data
+          const { data: bonusesData, error: bonusesError } = await supabase
+            .from("bonuses")
+            .select("*")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
+            
+          if (bonusesError) {
+            console.error("Error fetching bonuses:", bonusesError);
+          } else {
+            setBonusesData(bonusesData || []);
+          }
         }
       } catch (error) {
         console.error("Error:", error);
@@ -76,6 +140,9 @@ const UserDashboard = () => {
     );
   }
   
+  // Calculate total bonuses
+  const totalBonuses = bonusesData.reduce((total, bonus) => total + Number(bonus.amount), 0);
+  
   return (
     <AppLayout>
       <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
@@ -83,7 +150,7 @@ const UserDashboard = () => {
           <div>
             <h1 className="text-3xl font-bold">Welcome, {profile?.full_name || user?.email}</h1>
             <p className="text-muted-foreground">
-              Your current rank: <Badge variant="outline" className="ml-1 bg-black text-white">{profile?.rank || "Starter"}</Badge>
+              Your current rank: <Badge variant="outline" className="ml-1 bg-black text-white">{rankInfo?.name || "Starter"}</Badge>
             </p>
           </div>
           <div className="flex gap-2">
@@ -91,7 +158,7 @@ const UserDashboard = () => {
               Team Size: {profile?.team_size || 0} members
             </Badge>
             <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200 px-3 py-1">
-              VP Points: 2,450
+              PV Points: {profile?.personal_volume || 0}
             </Badge>
           </div>
         </div>
@@ -100,26 +167,26 @@ const UserDashboard = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <StatCard 
             title="Monthly Sales" 
-            value="$2,345" 
-            description="↑ 14% from last month" 
+            value={`$${getMonthlySalesTotal().toFixed(2)}`} 
+            description={salesData.length > 0 ? "Based on this month's data" : "No sales data yet"} 
             icon={<CircleDollarSign className="h-8 w-8 text-green-500" />} 
           />
           <StatCard 
             title="Team Members" 
             value={profile?.team_size || "0"} 
-            description="↑ 2 new this month" 
+            description="Build your team to earn more" 
             icon={<Users className="h-8 w-8 text-blue-500" />} 
           />
           <StatCard 
-            title="Referrals" 
-            value="26" 
-            description="↑ 5 from last month" 
+            title="Personal Volume" 
+            value={profile?.personal_volume || "0"} 
+            description={`Group Volume: ${profile?.group_volume || "0"}`} 
             icon={<Share2 className="h-8 w-8 text-purple-500" />} 
           />
           <StatCard 
             title="Rank Progress" 
-            value="64%" 
-            description="To next level: Elite" 
+            value={rankInfo ? `${((profile?.personal_volume || 0) / (rankInfo?.threshold_pv || 100) * 100).toFixed(0)}%` : "0%"} 
+            description={`Next: ${rankInfo?.name || "Loading..."}`} 
             icon={<Award className="h-8 w-8 text-amber-500" />} 
           />
         </div>
@@ -135,7 +202,7 @@ const UserDashboard = () => {
               <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart
-                    data={performanceData}
+                    data={getPerformanceData()}
                     margin={{ top: 10, right: 30, left: 0, bottom: 10 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

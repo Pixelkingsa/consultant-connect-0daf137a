@@ -9,17 +9,29 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Mail, Phone, MapPin, Award, Calendar } from "lucide-react";
 
-// Define extended profile type to include the missing fields
+// Define profile type with ranks relationship
+interface Rank {
+  id: string;
+  name: string;
+  threshold_pv: number;
+  threshold_gv: number;
+  commission_rate: number;
+}
+
 interface ExtendedProfile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
   created_at: string;
   updated_at: string;
-  rank: string;
+  rank_id: string | null;
+  ranks: Rank | null;
   team_size: number;
+  personal_volume: number;
+  group_volume: number;
   phone?: string;
   address?: string;
   city?: string;
@@ -56,10 +68,10 @@ const Profile = () => {
         
         setUser(user);
         
-        // Get user profile
+        // Get user profile with rank information
         const { data: profile, error: profileError } = await supabase
           .from("profiles")
-          .select("*")
+          .select("*, ranks(*)")
           .eq("id", user.id)
           .single();
         
@@ -122,17 +134,19 @@ const Profile = () => {
         description: "Your profile information has been updated successfully.",
       });
       
-      // Update local profile state with type safety
-      setProfile(prev => prev ? { 
-        ...prev, 
-        full_name: formData.full_name,
-        phone: formData.phone,
-        address: formData.address,
-        city: formData.city,
-        state: formData.state,
-        zip: formData.zip,
-        updated_at: new Date().toISOString(),
-      } : null);
+      // Update local profile state
+      if (profile) {
+        setProfile({
+          ...profile,
+          full_name: formData.full_name,
+          phone: formData.phone,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          zip: formData.zip,
+          updated_at: new Date().toISOString(),
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error updating profile",
@@ -142,6 +156,58 @@ const Profile = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  // Function to calculate rank progress percentage
+  const calculateRankProgress = () => {
+    if (!profile || !profile.ranks) return 0;
+    
+    const currentPV = profile.personal_volume || 0;
+    const threshold = profile.ranks.threshold_pv;
+    
+    if (threshold === 0) return 0; // Prevent division by zero
+    
+    const nextRankThreshold = getNextRankThreshold();
+    if (nextRankThreshold === null) return 100; // Already at highest rank
+    
+    return Math.min(Math.round((currentPV / nextRankThreshold) * 100), 100);
+  };
+  
+  // Function to get next rank threshold
+  const getNextRankThreshold = () => {
+    if (!profile || !profile.ranks) return null;
+    
+    const currentRankName = profile.ranks.name;
+    
+    // Define rank order and thresholds
+    const rankOrder = [
+      { name: 'Starter', threshold: 100 }, // Threshold to reach Associate
+      { name: 'Associate', threshold: 200 }, // Threshold to reach Director
+      { name: 'Director', threshold: 300 }, // Threshold to reach Executive
+      { name: 'Executive', threshold: 500 }, // Threshold to reach Elite
+      { name: 'Elite', threshold: null } // No higher rank
+    ];
+    
+    const currentRankIndex = rankOrder.findIndex(r => r.name === currentRankName);
+    if (currentRankIndex === -1 || currentRankIndex === rankOrder.length - 1) return null;
+    
+    return rankOrder[currentRankIndex + 1].threshold;
+  };
+  
+  // Get next rank name
+  const getNextRankName = () => {
+    if (!profile || !profile.ranks) return "Loading...";
+    
+    const currentRankName = profile.ranks.name;
+    
+    const rankOrder = ['Starter', 'Associate', 'Director', 'Executive', 'Elite'];
+    const currentRankIndex = rankOrder.indexOf(currentRankName);
+    
+    if (currentRankIndex === -1 || currentRankIndex === rankOrder.length - 1) {
+      return "Highest Rank";
+    }
+    
+    return rankOrder[currentRankIndex + 1];
   };
   
   if (loading) {
@@ -169,7 +235,16 @@ const Profile = () => {
           
           <TabsContent value="personal" className="space-y-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center gap-4">
+                <Avatar className="h-16 w-16">
+                  {profile?.avatar_url ? (
+                    <AvatarImage src={profile.avatar_url} alt={profile.full_name || "User"} />
+                  ) : (
+                    <AvatarFallback>
+                      {profile?.full_name ? profile.full_name.charAt(0).toUpperCase() : "U"}
+                    </AvatarFallback>
+                  )}
+                </Avatar>
                 <CardTitle className="text-xl">Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -275,7 +350,7 @@ const Profile = () => {
           <TabsContent value="account" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl">Agent Details</CardTitle>
+                <CardTitle className="text-xl">Consultant Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -284,11 +359,13 @@ const Profile = () => {
                       <Award className="text-accent h-5 w-5" />
                       <span className="font-medium">Current Rank</span>
                     </div>
-                    <p className="text-lg font-semibold">{profile?.rank || "Starter"}</p>
+                    <p className="text-lg font-semibold">{profile?.ranks?.name || "Loading..."}</p>
                     <div className="w-full bg-gray-200 rounded-full h-2.5 mt-2">
-                      <div className="bg-accent h-2.5 rounded-full" style={{ width: "65%" }}></div>
+                      <div className="bg-accent h-2.5 rounded-full" style={{ width: `${calculateRankProgress()}%` }}></div>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">65% to next rank</p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {calculateRankProgress()}% to next rank: {getNextRankName()}
+                    </p>
                   </div>
                   
                   <div className="bg-gray-50 p-4 rounded-lg">
@@ -304,6 +381,17 @@ const Profile = () => {
                       })}
                     </p>
                   </div>
+                </div>
+                
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <div className="flex items-center gap-3 mb-3">
+                    <CircleDollarSign className="text-accent h-5 w-5" />
+                    <span className="font-medium">Commission Rate</span>
+                  </div>
+                  <p className="text-lg font-semibold">{profile?.ranks?.commission_rate || 0}%</p>
+                  <p className="text-sm text-muted-foreground">
+                    Based on your current rank
+                  </p>
                 </div>
                 
                 <div className="p-4 border border-yellow-200 bg-yellow-50 rounded-lg">

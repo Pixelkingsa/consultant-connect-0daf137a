@@ -9,6 +9,150 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      bonuses: {
+        Row: {
+          amount: number
+          bonus_type: string
+          created_at: string
+          description: string | null
+          id: string
+          reference_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          bonus_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          bonus_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          reference_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bonuses_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      incentives: {
+        Row: {
+          created_at: string
+          description: string
+          end_date: string
+          id: string
+          is_active: boolean
+          qualification_criteria: string
+          reward_description: string
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          end_date: string
+          id?: string
+          is_active?: boolean
+          qualification_criteria: string
+          reward_description: string
+          start_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          end_date?: string
+          id?: string
+          is_active?: boolean
+          qualification_criteria?: string
+          reward_description?: string
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      leadership_progress: {
+        Row: {
+          created_at: string
+          current_group_volume: number
+          current_personal_volume: number
+          current_rank_id: string | null
+          id: string
+          needed_group_volume: number
+          needed_personal_volume: number
+          next_rank_id: string | null
+          period_end_date: string
+          period_start_date: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          current_group_volume?: number
+          current_personal_volume?: number
+          current_rank_id?: string | null
+          id?: string
+          needed_group_volume?: number
+          needed_personal_volume?: number
+          next_rank_id?: string | null
+          period_end_date: string
+          period_start_date: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          current_group_volume?: number
+          current_personal_volume?: number
+          current_rank_id?: string | null
+          id?: string
+          needed_group_volume?: number
+          needed_personal_volume?: number
+          next_rank_id?: string | null
+          period_end_date?: string
+          period_start_date?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leadership_progress_current_rank_id_fkey"
+            columns: ["current_rank_id"]
+            isOneToOne: false
+            referencedRelation: "ranks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_progress_next_rank_id_fkey"
+            columns: ["next_rank_id"]
+            isOneToOne: false
+            referencedRelation: "ranks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leadership_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           address: string | null
@@ -16,12 +160,16 @@ export type Database = {
           city: string | null
           created_at: string
           full_name: string | null
+          group_volume: number
           id: string
+          personal_volume: number
           phone: string | null
           rank: string
+          rank_id: string | null
           state: string | null
           team_size: number
           updated_at: string
+          upline_id: string | null
           zip: string | null
         }
         Insert: {
@@ -30,12 +178,16 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          group_volume?: number
           id: string
+          personal_volume?: number
           phone?: string | null
           rank?: string
+          rank_id?: string | null
           state?: string | null
           team_size?: number
           updated_at?: string
+          upline_id?: string | null
           zip?: string | null
         }
         Update: {
@@ -44,15 +196,155 @@ export type Database = {
           city?: string | null
           created_at?: string
           full_name?: string | null
+          group_volume?: number
           id?: string
+          personal_volume?: number
           phone?: string | null
           rank?: string
+          rank_id?: string | null
           state?: string | null
           team_size?: number
           updated_at?: string
+          upline_id?: string | null
           zip?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_rank_id_fkey"
+            columns: ["rank_id"]
+            isOneToOne: false
+            referencedRelation: "ranks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_upline_id_fkey"
+            columns: ["upline_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ranks: {
+        Row: {
+          commission_rate: number
+          created_at: string
+          id: string
+          name: string
+          threshold_gv: number
+          threshold_pv: number
+          updated_at: string
+        }
+        Insert: {
+          commission_rate: number
+          created_at?: string
+          id?: string
+          name: string
+          threshold_gv: number
+          threshold_pv: number
+          updated_at?: string
+        }
+        Update: {
+          commission_rate?: number
+          created_at?: string
+          id?: string
+          name?: string
+          threshold_gv?: number
+          threshold_pv?: number
+          updated_at?: string
+        }
         Relationships: []
+      }
+      sales: {
+        Row: {
+          amount: number
+          created_at: string
+          date: string
+          id: string
+          order_id: string
+          personal_volume: number
+          status: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          date?: string
+          id?: string
+          order_id: string
+          personal_volume: number
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          date?: string
+          id?: string
+          order_id?: string
+          personal_volume?: number
+          status?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sales_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          notes: string | null
+          payment_method: string | null
+          reference_number: string | null
+          status: string
+          transaction_type: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference_number?: string | null
+          status: string
+          transaction_type: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string | null
+          reference_number?: string | null
+          status?: string
+          transaction_type?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transactions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
