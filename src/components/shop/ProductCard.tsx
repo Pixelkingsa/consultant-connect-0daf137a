@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { ShoppingCart, ChevronUp, ChevronDown, AlertCircle } from "lucide-react";
+import { ShoppingCart, ChevronUp, ChevronDown, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface ProductCardProps {
   id: string;
@@ -17,6 +18,7 @@ interface ProductCardProps {
 
 const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) => {
   const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { toast } = useToast();
   const isOutOfStock = stock <= 0;
 
@@ -56,23 +58,48 @@ const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) =>
     });
   };
 
+  const toggleFavorite = () => {
+    setIsFavorite(!isFavorite);
+    toast({
+      title: isFavorite ? "Removed from favorites" : "Added to favorites",
+      description: `${name} has been ${isFavorite ? "removed from" : "added to"} your favorites.`,
+    });
+  };
+
   return (
     <Card className="overflow-hidden h-full flex flex-col">
-      <div className="p-4 h-48 flex items-center justify-center bg-gray-50">
+      <div className="relative p-4 h-48 flex items-center justify-center bg-gray-50">
         <img 
           src={image} 
           alt={name} 
           className="w-full h-full object-contain"
         />
+        <Button
+          variant="ghost"
+          size="icon"
+          className="absolute top-2 right-2 text-muted-foreground hover:text-foreground"
+          onClick={toggleFavorite}
+        >
+          <Heart className={`h-5 w-5 ${isFavorite ? "fill-red-500 text-red-500" : ""}`} />
+        </Button>
       </div>
       <CardContent className="p-4 flex-1 flex flex-col">
-        <h3 className="font-bold text-lg mb-1">{name}</h3>
+        <h3 className="font-bold text-lg mb-1 line-clamp-2">{name}</h3>
         <p className="text-xl font-bold mb-1">{price}</p>
         
         <div className="flex items-center gap-2 mb-3">
-          <div className="bg-green-500 text-white rounded-md px-2 py-1 text-xs">
-            {vp} VP
-          </div>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="bg-green-500 text-white rounded-md px-2 py-1 text-xs">
+                  {vp} VP
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Earn {vp} Volume Points with this purchase</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
           
           {isOutOfStock ? (
             <Badge variant="destructive" className="ml-auto">
