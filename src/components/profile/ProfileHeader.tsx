@@ -1,13 +1,15 @@
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 interface ProfileHeaderProps {
   avatarUrl: string | null;
   fullName: string | null;
+  rankName?: string | null;
 }
 
-const ProfileHeader = ({ avatarUrl, fullName }: ProfileHeaderProps) => {
+const ProfileHeader = ({ avatarUrl, fullName, rankName }: ProfileHeaderProps) => {
   return (
     <CardHeader className="flex flex-row items-center gap-4">
       <Avatar className="h-16 w-16">
@@ -19,7 +21,16 @@ const ProfileHeader = ({ avatarUrl, fullName }: ProfileHeaderProps) => {
           </AvatarFallback>
         )}
       </Avatar>
-      <CardTitle className="text-xl">Personal Information</CardTitle>
+      <div>
+        <CardTitle className="text-xl">Personal Information</CardTitle>
+        {rankName && (
+          <div className="mt-1">
+            <Badge variant="outline" className="bg-black text-white">
+              {rankName}
+            </Badge>
+          </div>
+        )}
+      </div>
     </CardHeader>
   );
 };

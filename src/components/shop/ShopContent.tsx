@@ -1,26 +1,83 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronDown } from "lucide-react";
+import { Search, ChevronDown, Loader2 } from "lucide-react";
 import ProductCard from "./ProductCard";
 
-// Mock product data
-const MOCK_PRODUCTS = [
-  { id: 1, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 2, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 3, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 4, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 5, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 6, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 7, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-  { id: 8, name: "Product Name", price: "R150", image: "/lovable-uploads/0653c87b-1203-4f94-94e5-d15b881ef9ad.png", vp: 1 },
-];
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  image_url: string | null;
+  vp_points: number;
+  category: string;
+  subcategory: string | null;
+  description: string | null;
+  stock_quantity: number;
+}
 
 const ShopContent = () => {
-  const [category, setCategory] = useState("All");
-  const [subcategory, setSubcategory] = useState("All");
+  const { toast } = useToast();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [subcategories, setSubcategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedSubcategory, setSelectedSubcategory] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Fetch products from Supabase
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("products")
+          .select("*")
+          .order("created_at", { ascending: false });
+          
+        if (error) throw error;
+        
+        setProducts(data || []);
+        
+        // Extract unique categories and subcategories
+        const uniqueCategories = Array.from(
+          new Set(data?.map(product => product.category) || [])
+        ).filter(Boolean);
+        
+        const uniqueSubcategories = Array.from(
+          new Set(data?.map(product => product.subcategory) || [])
+        ).filter(Boolean) as string[];
+        
+        setCategories(uniqueCategories as string[]);
+        setSubcategories(uniqueSubcategories);
+      } catch (error: any) {
+        console.error("Error fetching products:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load products. " + error.message,
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProducts();
+  }, [toast]);
+
+  // Filter products based on category, subcategory, and search query
+  const filteredProducts = products.filter(product => {
+    const matchesCategory = selectedCategory === "All" || product.category === selectedCategory;
+    const matchesSubcategory = selectedSubcategory === "All" || product.subcategory === selectedSubcategory;
+    const matchesSearch = searchQuery === "" || 
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+      (product.description && product.description.toLowerCase().includes(searchQuery.toLowerCase()));
+    
+    return matchesCategory && matchesSubcategory && matchesSearch;
+  });
 
   return (
     <div className="container max-w-7xl px-4 lg:px-8 py-8">
@@ -30,42 +87,84 @@ const ShopContent = () => {
         <div className="flex-shrink-0">
           <span className="mr-2">Category:</span>
           <select 
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
+            value={selectedCategory}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setSelectedSubcategory("All"); // Reset subcategory when category changes
+            }}
             className="rounded-md border border-input bg-background px-3 py-1"
           >
             <option value="All">All</option>
-            <option value="Perfumes">Perfumes</option>
-            <option value="Colognes">Colognes</option>
+            {categories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
           </select>
         </div>
         
         <div className="flex-shrink-0">
           <span className="mr-2">Subcategory:</span>
           <select 
-            value={subcategory}
-            onChange={(e) => setSubcategory(e.target.value)}
+            value={selectedSubcategory}
+            onChange={(e) => setSelectedSubcategory(e.target.value)}
             className="rounded-md border border-input bg-background px-3 py-1"
           >
             <option value="All">All</option>
-            <option value="Men">Men</option>
-            <option value="Women">Women</option>
-            <option value="Unisex">Unisex</option>
+            {subcategories
+              .filter(subcat => 
+                selectedCategory === "All" || 
+                products.some(p => p.category === selectedCategory && p.subcategory === subcat)
+              )
+              .map(subcategory => (
+                <option key={subcategory} value={subcategory}>{subcategory}</option>
+              ))
+            }
           </select>
+        </div>
+        
+        <div className="relative ml-auto">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search products..."
+            className="pl-9 w-full md:w-64"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {MOCK_PRODUCTS.map((product) => (
-          <ProductCard
-            key={product.id}
-            image={product.image}
-            name={product.name}
-            price={product.price}
-            vp={product.vp}
-          />
-        ))}
-      </div>
+      {loading ? (
+        <div className="flex justify-center items-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="py-20 text-center">
+          <p className="text-lg text-muted-foreground">No products found matching your criteria.</p>
+          <Button 
+            variant="link" 
+            onClick={() => {
+              setSelectedCategory("All");
+              setSelectedSubcategory("All");
+              setSearchQuery("");
+            }}
+          >
+            Clear filters
+          </Button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredProducts.map((product) => (
+            <ProductCard
+              key={product.id}
+              id={product.id}
+              image={product.image_url || "/placeholder.svg"}
+              name={product.name}
+              price={`$${product.price.toFixed(2)}`}
+              vp={product.vp_points}
+              stock={product.stock_quantity}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
