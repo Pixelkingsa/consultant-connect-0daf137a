@@ -9,22 +9,22 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Badge } from "@/components/ui/badge";
 import { CircleDollarSign, Users, TrendingUp, Award, Share2 } from "lucide-react";
 
+// Placeholder chart data until we have real data
+const performanceData = [
+  { month: "Jan", sales: 250, referrals: 5 },
+  { month: "Feb", sales: 420, referrals: 8 },
+  { month: "Mar", sales: 380, referrals: 12 },
+  { month: "Apr", sales: 530, referrals: 15 },
+  { month: "May", sales: 450, referrals: 10 },
+  { month: "Jun", sales: 620, referrals: 18 },
+];
+
 const UserDashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  // Enhanced data for the line chart showing both sales and referrals
-  const performanceData = [
-    { month: "Jan", sales: 250, referrals: 5 },
-    { month: "Feb", sales: 420, referrals: 8 },
-    { month: "Mar", sales: 380, referrals: 12 },
-    { month: "Apr", sales: 530, referrals: 15 },
-    { month: "May", sales: 450, referrals: 10 },
-    { month: "Jun", sales: 620, referrals: 18 },
-  ];
 
   useEffect(() => {
     const checkUser = async () => {
@@ -47,6 +47,11 @@ const UserDashboard = () => {
         
         if (profileError) {
           console.error("Error fetching profile:", profileError);
+          toast({
+            title: "Error loading profile",
+            description: "Could not load your profile data. Please try again later.",
+            variant: "destructive",
+          });
         } else {
           setProfile(profile);
         }
@@ -59,7 +64,7 @@ const UserDashboard = () => {
     };
     
     checkUser();
-  }, [navigate]);
+  }, [navigate, toast]);
   
   if (loading) {
     return (

@@ -65,6 +65,11 @@ const Profile = () => {
         
         if (profileError) {
           console.error("Error fetching profile:", profileError);
+          toast({
+            title: "Error loading profile",
+            description: "Could not load your profile data. Please try again later.",
+            variant: "destructive",
+          });
         } else {
           setProfile(profile as ExtendedProfile);
           // Set initial form data from profile
@@ -87,7 +92,7 @@ const Profile = () => {
     };
     
     checkUser();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -106,7 +111,7 @@ const Profile = () => {
           city: formData.city,
           state: formData.state,
           zip: formData.zip,
-          updated_at: new Date().toISOString(), // Convert Date to string
+          updated_at: new Date().toISOString(),
         })
         .eq("id", user.id);
 
@@ -125,7 +130,8 @@ const Profile = () => {
         address: formData.address,
         city: formData.city,
         state: formData.state,
-        zip: formData.zip
+        zip: formData.zip,
+        updated_at: new Date().toISOString(),
       } : null);
     } catch (error: any) {
       toast({
@@ -291,7 +297,12 @@ const Profile = () => {
                       <span className="font-medium">Account Status</span>
                     </div>
                     <p className="text-lg font-semibold">Active</p>
-                    <p className="text-sm text-muted-foreground">Member since: May 2023</p>
+                    <p className="text-sm text-muted-foreground">
+                      Member since: {new Date(profile?.created_at || '').toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long'
+                      })}
+                    </p>
                   </div>
                 </div>
                 
