@@ -18,10 +18,14 @@ import {
   Bell,
   X,
   ChevronDown,
-  LayoutDashboard
+  LayoutDashboard,
+  ShieldCheck,
+  Sun,
+  Moon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -31,11 +35,14 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const location = useLocation();
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(3);
+  const [cartCount, setCartCount] = useState(0);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const checkUser = async () => {
@@ -59,6 +66,32 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         if (!profileError) {
           setProfile(profile);
         }
+
+        // Check if user is admin (first user in the system)
+        const { data: profiles, error: adminCheckError } = await supabase
+          .from("profiles")
+          .select("id")
+          .order("created_at", { ascending: true })
+          .limit(1);
+          
+        if (!adminCheckError && profiles && profiles.length > 0) {
+          setIsAdmin(profiles[0].id === user.id);
+        }
+
+        // Get cart count
+        const { data: cartItems, error: cartError } = await supabase
+          .from("cart_items")
+          .select("id")
+          .eq("user_id", user.id);
+          
+        if (!cartError && cartItems) {
+          setCartCount(cartItems.length);
+        } else {
+          // Fallback value if table doesn't exist yet
+          setCartCount(3);
+        }
+
+        setLoading(false);
       } catch (error) {
         console.error("Error:", error);
         navigate("/auth");
@@ -92,6 +125,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     setSidebarOpen(!sidebarOpen);
   };
 
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
+
   // Check if link is active
   const isActive = (path: string) => {
     return location.pathname === path;
@@ -113,20 +150,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <ul className="space-y-1 px-2">
             <li>
               <Link 
-                to="/user-dashboard"
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/user-dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <LayoutDashboard className="h-5 w-5" />
-                <span>User Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/dashboard" 
+                to="/dashboard"
                 className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
               >
-                <Home className="h-5 w-5" />
-                <span>Home</span>
+                <LayoutDashboard className="h-5 w-5" />
+                <span>Dashboard</span>
               </Link>
             </li>
             <li>
@@ -149,11 +177,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </li>
             <li>
               <Link 
-                to="/referals" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/referals') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+                to="/referrals" 
+                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/referrals') ? 'bg-white/10' : 'hover:bg-white/10'}`}
               >
                 <Share2 className="h-5 w-5" />
-                <span>Referals</span>
+                <span>Referrals</span>
               </Link>
             </li>
             <li>
@@ -174,6 +202,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 <span>News</span>
               </Link>
             </li>
+            {isAdmin && (
+              <li>
+                <Link 
+                  to="/admin-dashboard" 
+                  className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/admin-dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
+                >
+                  <ShieldCheck className="h-5 w-5" />
+                  <span>Admin</span>
+                </Link>
+              </li>
+            )}
           </ul>
 
           <div className="border-t border-white/10 my-6"></div>
@@ -210,10 +249,10 @@ const AppLayout = ({ children }: AppLayoutProps) => {
       {/* Main Content */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="bg-white border-b sticky top-0 z-10">
+        <header className="bg-background border-b sticky top-0 z-10">
           <div className="flex items-center justify-between h-16 px-4">
             <div className="flex items-center gap-4">
-              <button onClick={toggleSidebar} className="p-2 rounded-md hover:bg-gray-100 md:hidden">
+              <button onClick={toggleSidebar} className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden">
                 {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
               <div className="relative w-64 hidden md:block">
@@ -227,7 +266,17 @@ const AppLayout = ({ children }: AppLayoutProps) => {
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="relative p-2">
+              <button 
+                onClick={toggleTheme} 
+                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+              </button>
+              
+              <button 
+                className="relative p-2" 
+                onClick={() => navigate("/cart")}
+              >
                 <ShoppingCart size={24} />
                 {cartCount > 0 && (
                   <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
@@ -239,29 +288,29 @@ const AppLayout = ({ children }: AppLayoutProps) => {
               <div className="relative">
                 <button 
                   onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="flex items-center gap-2 rounded-full bg-gray-100 p-1 pr-3"
+                  className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 p-1 pr-3"
                 >
-                  <div className="w-10 h-10 rounded-full bg-gray-300 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
                     <User size={20} />
                   </div>
                   <ChevronDown size={16} />
                 </button>
 
                 {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50 border">
+                  <div className="absolute right-0 mt-2 w-48 bg-background rounded-md shadow-lg z-50 border">
                     <div className="py-1">
-                      <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                      <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
                         Update Profile
                       </Link>
-                      <Link to="/news" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                      <Link to="/news" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
                         News & Updates
                       </Link>
-                      <Link to="/settings" className="block px-4 py-2 text-sm hover:bg-gray-100">
+                      <Link to="/settings" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
                         Settings
                       </Link>
                       <button 
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
                       >
                         Logout
                       </button>
@@ -274,7 +323,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-background">
           {children}
         </main>
       </div>

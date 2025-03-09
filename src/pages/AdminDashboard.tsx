@@ -7,7 +7,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UsersRound, Package, Award, DollarSign } from "lucide-react";
+import { UsersRound, Package, Award, DollarSign, Database } from "lucide-react";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -31,8 +31,7 @@ const AdminDashboard = () => {
         
         setUser(user);
         
-        // Check if user has admin role - in a real app, you would check against a roles table
-        // For this example, we'll consider the first user as admin
+        // Check if user is admin - first user in the system
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("*")
@@ -41,7 +40,12 @@ const AdminDashboard = () => {
           
         if (profilesError) {
           console.error("Error checking admin status:", profilesError);
-          navigate("/user-dashboard");
+          toast({
+            title: "Error checking admin status",
+            description: "Could not verify admin privileges. Redirecting to dashboard.",
+            variant: "destructive",
+          });
+          navigate("/dashboard");
           return;
         }
         
@@ -66,11 +70,11 @@ const AdminDashboard = () => {
             description: "You don't have permission to access the admin dashboard.",
             variant: "destructive",
           });
-          navigate("/user-dashboard");
+          navigate("/dashboard");
         }
       } catch (error) {
         console.error("Error:", error);
-        navigate("/user-dashboard");
+        navigate("/dashboard");
       } finally {
         setLoading(false);
       }
@@ -98,12 +102,14 @@ const AdminDashboard = () => {
       <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <Button onClick={() => navigate("/admin/products")}>
-            Manage Products
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => navigate("/admin/products")}>
+              Manage Products
+            </Button>
+          </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
           <AdminStatCard 
             title="Total Users" 
             value={usersCount.toString()} 
@@ -122,11 +128,18 @@ const AdminDashboard = () => {
             icon={<DollarSign size={24} />}
             color="bg-purple-500"
           />
+          <AdminStatCard 
+            title="Rankings" 
+            value={`${productsCount > 0 ? "Active" : "Setup"}`} 
+            icon={<Award size={24} />}
+            color="bg-amber-500"
+          />
         </div>
         
         <Tabs defaultValue="users" className="w-full">
           <TabsList className="mb-8">
             <TabsTrigger value="users">User Management</TabsTrigger>
+            <TabsTrigger value="products">Product Management</TabsTrigger>
             <TabsTrigger value="sales">Sales Overview</TabsTrigger>
             <TabsTrigger value="ranks">Rank Management</TabsTrigger>
           </TabsList>
@@ -142,6 +155,22 @@ const AdminDashboard = () => {
                 </p>
                 <Button onClick={() => navigate("/admin/users")}>
                   View All Users
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="products" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Product Management</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground mb-4">
+                  Add, edit, and manage products in your catalog.
+                </p>
+                <Button onClick={() => navigate("/admin/products")}>
+                  Manage Products
                 </Button>
               </CardContent>
             </Card>

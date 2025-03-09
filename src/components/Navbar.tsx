@@ -1,14 +1,21 @@
 
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ShoppingCart, ShieldCheck, Moon, Sun } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useTheme } from "@/components/ThemeProvider";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { theme, setTheme } = useTheme();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -23,13 +30,55 @@ const Navbar = () => {
     // Close mobile menu when route changes
     setIsMobileMenuOpen(false);
   }, [location]);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (user && !error) {
+        setUser(user);
+        
+        // Check if user is admin
+        const { data: profiles, error: adminCheckError } = await supabase
+          .from("profiles")
+          .select("id")
+          .order("created_at", { ascending: true })
+          .limit(1);
+          
+        if (!adminCheckError && profiles && profiles.length > 0) {
+          setIsAdmin(profiles[0].id === user.id);
+        }
+
+        // Get cart count
+        const { data: cartItems, error: cartError } = await supabase
+          .from("cart_items")
+          .select("id")
+          .eq("user_id", user.id);
+          
+        if (!cartError && cartItems) {
+          setCartCount(cartItems.length);
+        } else {
+          // Fallback if table doesn't exist yet
+          setCartCount(3);
+        }
+      }
+    };
+    
+    checkUser();
+  }, []);
+  
+  const toggleTheme = () => {
+    setTheme(theme === "light" ? "dark" : "light");
+  };
   
   const navLinks = [
     { name: "Home", path: "/" },
-    { name: "Products", path: "/products" },
-    { name: "Opportunity", path: "/opportunity" },
+    { name: "Products", path: "/shop" },
     { name: "Dashboard", path: "/dashboard" }
   ];
+
+  if (isAdmin) {
+    navLinks.push({ name: "Admin", path: "/admin-dashboard" });
+  }
   
   return (
     <header
@@ -68,14 +117,42 @@ const Navbar = () => {
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
-          <Link to="/auth">
-            <Button variant="ghost" size="sm">
-              Sign In
-            </Button>
-          </Link>
-          <Link to="/auth?register=true">
-            <Button size="sm">Join Now</Button>
-          </Link>
+          <button 
+            onClick={toggleTheme} 
+            className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+          </button>
+          
+          {user ? (
+            <>
+              <button 
+                className="relative p-2" 
+                onClick={() => navigate("/cart")}
+              >
+                <ShoppingCart size={22} />
+                {cartCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+              <Link to="/dashboard">
+                <Button size="sm">Dashboard</Button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/auth">
+                <Button variant="ghost" size="sm">
+                  Sign In
+                </Button>
+              </Link>
+              <Link to="/auth?register=true">
+                <Button size="sm">Join Now</Button>
+              </Link>
+            </>
+          )}
         </div>
         
         {/* Mobile menu button */}
@@ -118,16 +195,34 @@ const Navbar = () => {
           </nav>
           
           <div className="flex flex-col space-y-4 pt-4 border-t">
-            <Link to="/auth" className="w-full">
-              <Button variant="ghost" className="w-full justify-center">
-                Sign In
-              </Button>
-            </Link>
-            <Link to="/auth?register=true" className="w-full">
-              <Button className="w-full justify-center">
-                Join Now
-              </Button>
-            </Link>
+            {user ? (
+              <>
+                <Link to="/cart" className="w-full flex items-center gap-2">
+                  <Button variant="ghost" className="w-full justify-start">
+                    <ShoppingCart className="h-5 w-5 mr-2" />
+                    Cart {cartCount > 0 && `(${cartCount})`}
+                  </Button>
+                </Link>
+                <Link to="/dashboard" className="w-full">
+                  <Button className="w-full justify-center">
+                    Dashboard
+                  </Button>
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/auth" className="w-full">
+                  <Button variant="ghost" className="w-full justify-center">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/auth?register=true" className="w-full">
+                  <Button className="w-full justify-center">
+                    Join Now
+                  </Button>
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>

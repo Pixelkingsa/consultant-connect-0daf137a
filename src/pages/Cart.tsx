@@ -12,10 +12,11 @@ import { motion } from "framer-motion";
 
 interface CartItem {
   id: string;
+  product_id: string;
   name: string;
   price: number;
   quantity: number;
-  image: string;
+  image_url: string;
 }
 
 const Cart = () => {
@@ -23,29 +24,7 @@ const Cart = () => {
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [cartItems, setCartItems] = useState<CartItem[]>([
-    {
-      id: "prod-1",
-      name: "Vamna Essence Parfum",
-      price: 79.99,
-      quantity: 1,
-      image: "https://i.pravatar.cc/150?img=1"
-    },
-    {
-      id: "prod-2",
-      name: "Vamna Body Lotion",
-      price: 45.99,
-      quantity: 2,
-      image: "https://i.pravatar.cc/150?img=2"
-    },
-    {
-      id: "prod-3",
-      name: "Vamna Cologne for Men",
-      price: 89.99,
-      quantity: 1,
-      image: "https://i.pravatar.cc/150?img=3"
-    }
-  ]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -58,6 +37,57 @@ const Cart = () => {
         }
         
         setUser(user);
+        
+        // Check if cart_items table exists and fetch data
+        const { data: cartData, error: cartError } = await supabase
+          .from("cart_items")
+          .select("*, products(name, price, image_url)")
+          .eq("user_id", user.id);
+          
+        if (cartError) {
+          console.error("Error fetching cart:", cartError);
+          // Fallback to placeholder data
+          setCartItems([
+            {
+              id: "placeholder-1",
+              product_id: "prod-1",
+              name: "Vamna Essence Parfum",
+              price: 79.99,
+              quantity: 1,
+              image_url: "https://i.pravatar.cc/150?img=1"
+            },
+            {
+              id: "placeholder-2",
+              product_id: "prod-2",
+              name: "Vamna Body Lotion",
+              price: 45.99,
+              quantity: 2,
+              image_url: "https://i.pravatar.cc/150?img=2"
+            },
+            {
+              id: "placeholder-3",
+              product_id: "prod-3",
+              name: "Vamna Cologne for Men",
+              price: 89.99,
+              quantity: 1,
+              image_url: "https://i.pravatar.cc/150?img=3"
+            }
+          ]);
+        } else if (cartData && cartData.length > 0) {
+          // Map fetched data to CartItem format
+          const mappedItems = cartData.map(item => ({
+            id: item.id,
+            product_id: item.product_id,
+            name: item.products?.name || "Unknown Product",
+            price: item.products?.price || 0,
+            quantity: item.quantity,
+            image_url: item.products?.image_url || "https://i.pravatar.cc/150?img=1"
+          }));
+          setCartItems(mappedItems);
+        } else {
+          // If cart is empty but table exists
+          setCartItems([]);
+        }
       } catch (error) {
         console.error("Error:", error);
         navigate("/auth");
@@ -69,18 +99,58 @@ const Cart = () => {
     checkUser();
   }, [navigate]);
 
-  const updateQuantity = (id: string, change: number) => {
-    setCartItems(prevItems => 
-      prevItems.map(item => 
-        item.id === id ? 
-          { ...item, quantity: Math.max(1, item.quantity + change) } : 
-          item
-      )
+  const updateQuantity = async (id: string, change: number) => {
+    const updatedItems = cartItems.map(item => 
+      item.id === id ? 
+        { ...item, quantity: Math.max(1, item.quantity + change) } : 
+        item
     );
+    
+    setCartItems(updatedItems);
+    
+    // If using real database cart
+    if (!id.startsWith("placeholder")) {
+      try {
+        const item = updatedItems.find(item => item.id === id);
+        if (item) {
+          const { error } = await supabase
+            .from("cart_items")
+            .update({ quantity: item.quantity })
+            .eq("id", id);
+            
+          if (error) throw error;
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error updating quantity",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    }
   };
 
-  const removeItem = (id: string) => {
+  const removeItem = async (id: string) => {
     setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+    
+    // If using real database cart
+    if (!id.startsWith("placeholder")) {
+      try {
+        const { error } = await supabase
+          .from("cart_items")
+          .delete()
+          .eq("id", id);
+          
+        if (error) throw error;
+      } catch (error: any) {
+        toast({
+          title: "Error removing item",
+          description: error.message,
+          variant: "destructive"
+        });
+      }
+    }
+    
     toast({
       title: "Item removed",
       description: "The item has been removed from your cart."
@@ -135,7 +205,7 @@ const Cart = () => {
                     >
                       <div className="w-20 h-20 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
                         <img 
-                          src={item.image} 
+                          src={item.image_url} 
                           alt={item.name} 
                           className="w-full h-full object-cover"
                         />
@@ -168,7 +238,7 @@ const Cart = () => {
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
                           onClick={() => removeItem(item.id)}
                         >
                           <X className="h-4 w-4" />
@@ -226,8 +296,8 @@ const Cart = () => {
             </div>
           </div>
         ) : (
-          <div className="text-center py-16 bg-gray-50 rounded-lg">
-            <ShoppingBag className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+          <div className="text-center py-16 bg-muted/20 rounded-lg">
+            <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
             <h2 className="text-2xl font-medium mb-2">Your cart is empty</h2>
             <p className="text-muted-foreground mb-6">Looks like you haven't added any products to your cart yet.</p>
             <Button size="lg" onClick={() => navigate("/shop")}>
