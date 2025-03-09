@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,6 @@ const Navbar = () => {
   }, []);
   
   useEffect(() => {
-    // Close mobile menu when route changes
     setIsMobileMenuOpen(false);
   }, [location]);
 
@@ -48,17 +46,22 @@ const Navbar = () => {
           setIsAdmin(profiles[0].id === user.id);
         }
 
-        // Get cart count
-        const { data: cartItems, error: cartError } = await supabase
-          .from("cart_items")
-          .select("id")
-          .eq("user_id", user.id);
-          
-        if (!cartError && cartItems) {
-          setCartCount(cartItems.length);
-        } else {
-          // Fallback if table doesn't exist yet
-          setCartCount(3);
+        // Get cart count from the cart_items table
+        try {
+          const { count, error: cartError } = await supabase
+            .from("cart_items")
+            .select("id", { count: 'exact', head: true })
+            .eq("user_id", user.id);
+            
+          if (!cartError) {
+            setCartCount(count || 0);
+          } else {
+            console.error("Error fetching cart count:", cartError);
+            setCartCount(0);
+          }
+        } catch (cartError) {
+          console.error("Error counting cart items:", cartError);
+          setCartCount(0);
         }
       }
     };

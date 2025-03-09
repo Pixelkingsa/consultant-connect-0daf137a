@@ -6,6 +6,7 @@ import { ShoppingCart, ChevronUp, ChevronDown, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ProductCardProps {
   id: string;
@@ -19,6 +20,7 @@ interface ProductCardProps {
 const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) => {
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const isOutOfStock = stock <= 0;
 
@@ -40,7 +42,7 @@ const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) =>
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     if (isOutOfStock) {
       toast({
         title: "Out of Stock",
@@ -50,12 +52,79 @@ const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) =>
       return;
     }
     
-    // Here you would add the item to the cart
-    // For now, we'll just show a toast
-    toast({
-      title: "Added to cart",
-      description: `${quantity} ${name} added to your cart.`,
-    });
+    setIsLoading(true);
+    
+    try {
+      // Check if user is authenticated
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to add items to your cart.",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+        return;
+      }
+      
+      // Check if the item is already in the cart
+      const { data: existingItem, error: checkError } = await supabase
+        .from("cart_items")
+        .select("id, quantity")
+        .eq("user_id", user.id)
+        .eq("product_id", id)
+        .single();
+      
+      if (checkError && checkError.code !== "PGRST116") { // PGRST116 means no rows returned
+        throw checkError;
+      }
+      
+      if (existingItem) {
+        // Update existing cart item
+        const newQuantity = existingItem.quantity + quantity;
+        const { error: updateError } = await supabase
+          .from("cart_items")
+          .update({ quantity: newQuantity, updated_at: new Date().toISOString() })
+          .eq("id", existingItem.id);
+          
+        if (updateError) throw updateError;
+        
+        toast({
+          title: "Cart updated",
+          description: `Updated ${name} quantity to ${newQuantity} in your cart.`,
+        });
+      } else {
+        // Add new cart item
+        const { error: insertError } = await supabase
+          .from("cart_items")
+          .insert({ 
+            user_id: user.id, 
+            product_id: id, 
+            quantity: quantity 
+          });
+          
+        if (insertError) throw insertError;
+        
+        toast({
+          title: "Added to cart",
+          description: `${quantity} ${name} added to your cart.`,
+        });
+      }
+      
+      // Refresh the page to update cart count in the navbar
+      window.dispatchEvent(new CustomEvent('cart-updated'));
+      
+    } catch (error: any) {
+      console.error("Error adding to cart:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add item to cart.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const toggleFavorite = () => {
@@ -142,10 +211,19 @@ const ProductCard = ({ id, image, name, price, vp, stock }: ProductCardProps) =>
             <Button 
               onClick={handleAddToCart} 
               className="flex-1"
-              disabled={isOutOfStock}
+              disabled={isOutOfStock || isLoading}
             >
-              <ShoppingCart className="h-4 w-4 mr-2" />
-              Add to Cart
+              {isLoading ? (
+                <span className="flex items-center">
+                  <ShoppingCart className="h-4 w-4 mr-2 animate-pulse" />
+                  Adding...
+                </span>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Add to Cart
+                </>
+              )}
             </Button>
           </div>
         </div>

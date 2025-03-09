@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,15 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, X, ShoppingBag, ArrowRight, CreditCard } from "lucide-react";
 import { motion } from "framer-motion";
-
-interface CartItem {
-  id: string;
-  product_id: string;
-  name: string;
-  price: number;
-  quantity: number;
-  image_url: string;
-}
+import { CartItem } from "@/types/cart";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -38,10 +29,10 @@ const Cart = () => {
         
         setUser(user);
         
-        // Check if cart_items table exists and fetch data
+        // Fetch cart items
         const { data: cartData, error: cartError } = await supabase
           .from("cart_items")
-          .select("*, products(name, price, image_url)")
+          .select("*, products(name, price, image_url, vp_points)")
           .eq("user_id", user.id);
           
         if (cartError) {
@@ -50,40 +41,47 @@ const Cart = () => {
           setCartItems([
             {
               id: "placeholder-1",
+              user_id: user.id,
               product_id: "prod-1",
               name: "Vamna Essence Parfum",
               price: 79.99,
               quantity: 1,
-              image_url: "https://i.pravatar.cc/150?img=1"
+              image_url: "https://i.pravatar.cc/150?img=1",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             },
             {
               id: "placeholder-2",
+              user_id: user.id,
               product_id: "prod-2",
               name: "Vamna Body Lotion",
               price: 45.99,
               quantity: 2,
-              image_url: "https://i.pravatar.cc/150?img=2"
+              image_url: "https://i.pravatar.cc/150?img=2",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             },
             {
               id: "placeholder-3",
+              user_id: user.id,
               product_id: "prod-3",
               name: "Vamna Cologne for Men",
               price: 89.99,
               quantity: 1,
-              image_url: "https://i.pravatar.cc/150?img=3"
+              image_url: "https://i.pravatar.cc/150?img=3",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }
-          ]);
+          ] as any[]);
         } else if (cartData && cartData.length > 0) {
-          // Map fetched data to CartItem format
+          // Map fetched data to expected format
           const mappedItems = cartData.map(item => ({
-            id: item.id,
-            product_id: item.product_id,
+            ...item,
             name: item.products?.name || "Unknown Product",
             price: item.products?.price || 0,
-            quantity: item.quantity,
             image_url: item.products?.image_url || "https://i.pravatar.cc/150?img=1"
           }));
-          setCartItems(mappedItems);
+          setCartItems(mappedItems as any[]);
         } else {
           // If cart is empty but table exists
           setCartItems([]);

@@ -1,31 +1,15 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { 
-  Search, 
-  Menu, 
-  ShoppingCart, 
-  User, 
-  Home, 
-  ShoppingBag, 
-  ClipboardList, 
-  Share2, 
-  Settings, 
-  HelpCircle, 
-  LogOut,
-  Bell,
-  X,
-  ChevronDown,
-  LayoutDashboard,
-  ShieldCheck,
-  Sun,
-  Moon
-} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { useTheme } from "@/components/ThemeProvider";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { Badge } from "@/components/ui/badge";
+import { Bell, ChevronDown, CreditCard, Home, LogOut, Menu, Package, Settings, ShoppingCart, User, Users } from "lucide-react";
+import Navbar from "@/components/Navbar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -33,297 +17,264 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const location = useLocation();
-  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [profileMenuOpen, setProfileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
   
   useEffect(() => {
     const checkUser = async () => {
+      const { data: { user }, error } = await supabase.auth.getUser();
+      
+      if (error || !user) {
+        navigate("/auth");
+        return;
+      }
+      
+      setUser(user);
+      
+      // Check if user is admin
+      const { data: profiles, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+        
+      if (!profileError && profiles) {
+        setProfile(profiles);
+        setIsAdmin(profiles.rank === "Admin");
+      }
+      
+      // Get cart count from the cart_items table
       try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          navigate("/auth");
-          return;
-        }
-        
-        setUser(user);
-        
-        // Get user profile
-        const { data: profile, error: profileError } = await supabase
-          .from("profiles")
-          .select("*")
-          .eq("id", user.id)
-          .single();
-        
-        if (!profileError) {
-          setProfile(profile);
-        }
-
-        // Check if user is admin (first user in the system)
-        const { data: profiles, error: adminCheckError } = await supabase
-          .from("profiles")
-          .select("id")
-          .order("created_at", { ascending: true })
-          .limit(1);
-          
-        if (!adminCheckError && profiles && profiles.length > 0) {
-          setIsAdmin(profiles[0].id === user.id);
-        }
-
-        // Get cart count
-        const { data: cartItems, error: cartError } = await supabase
+        const { count, error: cartError } = await supabase
           .from("cart_items")
-          .select("id")
+          .select("id", { count: 'exact', head: true })
           .eq("user_id", user.id);
           
-        if (!cartError && cartItems) {
-          setCartCount(cartItems.length);
+        if (!cartError) {
+          setCartCount(count || 0);
         } else {
-          // Fallback value if table doesn't exist yet
-          setCartCount(3);
+          console.error("Error fetching cart count:", cartError);
+          setCartCount(0);
         }
-
-        setLoading(false);
-      } catch (error) {
-        console.error("Error:", error);
-        navigate("/auth");
+      } catch (cartError) {
+        console.error("Error counting cart items:", cartError);
+        setCartCount(0);
       }
     };
     
     checkUser();
   }, [navigate]);
-
+  
   const handleSignOut = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      
-      toast({
-        title: "Signed out successfully",
-        description: "You have been signed out of your account.",
-      });
-      
-      navigate("/auth");
-    } catch (error: any) {
-      toast({
-        title: "Error signing out",
-        description: error.message,
-        variant: "destructive",
-      });
-    }
+    await supabase.auth.signOut();
+    navigate("/auth");
   };
-
-  const toggleSidebar = () => {
-    setSidebarOpen(!sidebarOpen);
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === "light" ? "dark" : "light");
-  };
-
-  // Check if link is active
-  const isActive = (path: string) => {
-    return location.pathname === path;
-  };
-
+  
+  const sidebarLinks = [
+    { name: "Dashboard", path: "/dashboard", icon: <Home className="h-5 w-5" /> },
+    { name: "Shop", path: "/shop", icon: <Package className="h-5 w-5" /> },
+    { name: "Orders", path: "/orders", icon: <CreditCard className="h-5 w-5" /> },
+    { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
+    { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
+    { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
+  ];
+  
+  if (isAdmin) {
+    sidebarLinks.push(
+      { name: "Admin Dashboard", path: "/admin-dashboard", icon: <Bell className="h-5 w-5" /> }
+    );
+  }
+  
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar */}
-      <aside className={`fixed inset-y-0 left-0 z-10 w-64 bg-black text-white transition-transform duration-300 transform ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
-        <div className="p-4 flex items-center justify-center border-b border-white/10 h-16">
-          <img 
-            src="/lovable-uploads/a79a2128-78e1-4f37-99af-a9640dcc8da6.png" 
-            alt="Vamna Fragrances" 
-            className="h-12 w-auto"
-          />
-        </div>
-        
-        <nav className="py-6">
-          <ul className="space-y-1 px-2">
-            <li>
-              <Link 
-                to="/dashboard"
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <LayoutDashboard className="h-5 w-5" />
-                <span>Dashboard</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/shop" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/shop') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <ShoppingBag className="h-5 w-5" />
-                <span>Shop</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/orders" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/orders') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <ClipboardList className="h-5 w-5" />
-                <span>Orders</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/referrals" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/referrals') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <Share2 className="h-5 w-5" />
-                <span>Referrals</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/profile" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/profile') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <User className="h-5 w-5" />
-                <span>Profile</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/news" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/news') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <Bell className="h-5 w-5" />
-                <span>News</span>
-              </Link>
-            </li>
-            {isAdmin && (
-              <li>
-                <Link 
-                  to="/admin-dashboard" 
-                  className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/admin-dashboard') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-                >
-                  <ShieldCheck className="h-5 w-5" />
-                  <span>Admin</span>
-                </Link>
-              </li>
-            )}
-          </ul>
-
-          <div className="border-t border-white/10 my-6"></div>
-
-          <ul className="space-y-1 px-2">
-            <li>
-              <Link 
-                to="/settings" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/settings') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <Settings className="h-5 w-5" />
-                <span>Settings</span>
-              </Link>
-            </li>
-            <li>
-              <Link 
-                to="/help" 
-                className={`flex items-center gap-3 px-4 py-3 rounded-md ${isActive('/help') ? 'bg-white/10' : 'hover:bg-white/10'}`}
-              >
-                <HelpCircle className="h-5 w-5" />
-                <span>Help & Support</span>
-              </Link>
-            </li>
-            <li>
-              <button onClick={handleSignOut} className="w-full flex items-center gap-3 px-4 py-3 rounded-md text-red-500 hover:bg-white/10">
-                <LogOut className="h-5 w-5" />
-                <span>Logout</span>
-              </button>
-            </li>
-          </ul>
-        </nav>
-      </aside>
-
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Header */}
-        <header className="bg-background border-b sticky top-0 z-10">
-          <div className="flex items-center justify-between h-16 px-4">
-            <div className="flex items-center gap-4">
-              <button onClick={toggleSidebar} className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800 md:hidden">
-                {sidebarOpen ? <X size={24} /> : <Menu size={24} />}
-              </button>
-              <div className="relative w-64 hidden md:block">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <Input 
-                  type="search"
-                  placeholder="Search"
-                  className="pl-10 pr-4 py-2 w-full"
-                />
+    <div className="min-h-screen flex flex-col">
+      <Navbar />
+      
+      <div className="flex flex-1 pt-16">
+        {/* Sidebar for desktop */}
+        <aside className="hidden md:flex flex-col w-64 border-r bg-card">
+          <div className="p-6">
+            <div className="flex items-center gap-3">
+              <Avatar>
+                <AvatarImage src={profile?.avatar_url} />
+                <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="font-medium">{profile?.full_name || "User"}</p>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
-
-            <div className="flex items-center gap-4">
-              <button 
-                onClick={toggleTheme} 
-                className="p-2 rounded-md hover:bg-gray-100 dark:hover:bg-gray-800"
-              >
-                {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
-              </button>
+            
+            {profile && (
+              <div className="mt-4 p-3 bg-muted rounded-lg">
+                <div className="flex justify-between items-center">
+                  <span className="text-sm font-medium">Rank</span>
+                  <Badge variant="outline">{profile.rank}</Badge>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-sm font-medium">PV</span>
+                  <span className="text-sm">{profile.personal_volume}</span>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <span className="text-sm font-medium">GV</span>
+                  <span className="text-sm">{profile.group_volume}</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <Separator />
+          
+          <nav className="flex-1 p-4">
+            <ul className="space-y-2">
+              {sidebarLinks.map((link) => (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                      window.location.pathname === link.path
+                        ? "bg-accent text-accent-foreground font-medium"
+                        : "hover:bg-muted"
+                    )}
+                  >
+                    {link.icon}
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          
+          <div className="p-4 mt-auto">
+            <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+        </aside>
+        
+        {/* Mobile sidebar */}
+        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
+          <SheetContent side="left" className="w-64 p-0">
+            <div className="p-6">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarImage src={profile?.avatar_url} />
+                  <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{profile?.full_name || "User"}</p>
+                  <p className="text-sm text-muted-foreground">{user?.email}</p>
+                </div>
+              </div>
               
-              <button 
-                className="relative p-2" 
+              {profile && (
+                <div className="mt-4 p-3 bg-muted rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm font-medium">Rank</span>
+                    <Badge variant="outline">{profile.rank}</Badge>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm font-medium">PV</span>
+                    <span className="text-sm">{profile.personal_volume}</span>
+                  </div>
+                  <div className="flex justify-between items-center mt-2">
+                    <span className="text-sm font-medium">GV</span>
+                    <span className="text-sm">{profile.group_volume}</span>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <Separator />
+            
+            <nav className="flex-1 p-4">
+              <ul className="space-y-2">
+                {sidebarLinks.map((link) => (
+                  <li key={link.path}>
+                    <Link
+                      to={link.path}
+                      className={cn(
+                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                        window.location.pathname === link.path
+                          ? "bg-accent text-accent-foreground font-medium"
+                          : "hover:bg-muted"
+                      )}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                    >
+                      {link.icon}
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </nav>
+            
+            <div className="p-4 mt-auto">
+              <Button variant="outline" className="w-full justify-start" onClick={handleSignOut}>
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+        
+        {/* Main content */}
+        <main className="flex-1 overflow-auto">
+          {/* Mobile header */}
+          <div className="md:hidden flex items-center justify-between p-4 border-b">
+            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+              <Menu className="h-6 w-6" />
+            </Button>
+            
+            <div className="flex items-center gap-2">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="relative"
                 onClick={() => navigate("/cart")}
               >
-                <ShoppingCart size={24} />
+                <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs">
+                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
                     {cartCount}
                   </span>
                 )}
-              </button>
+              </Button>
               
-              <div className="relative">
-                <button 
-                  onClick={() => setProfileMenuOpen(!profileMenuOpen)}
-                  className="flex items-center gap-2 rounded-full bg-gray-100 dark:bg-gray-800 p-1 pr-3"
-                >
-                  <div className="w-10 h-10 rounded-full bg-gray-300 dark:bg-gray-700 flex items-center justify-center">
-                    <User size={20} />
-                  </div>
-                  <ChevronDown size={16} />
-                </button>
-
-                {profileMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-background rounded-md shadow-lg z-50 border">
-                    <div className="py-1">
-                      <Link to="/profile" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
-                        Update Profile
-                      </Link>
-                      <Link to="/news" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
-                        News & Updates
-                      </Link>
-                      <Link to="/settings" className="block px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800">
-                        Settings
-                      </Link>
-                      <button 
-                        onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-800"
-                      >
-                        Logout
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon">
+                    <Avatar className="h-8 w-8">
+                      <AvatarImage src={profile?.avatar_url} />
+                      <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                    <Settings className="h-4 w-4 mr-2" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleSignOut}>
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-background">
+          
           {children}
         </main>
       </div>
