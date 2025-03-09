@@ -1,16 +1,15 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
-  Share2, Copy, Users, Award, TrendingUp, Check, Mail
+  Share2, Copy, Users, Award, Mail
 } from "lucide-react";
 
 interface ReferredUser {
@@ -30,6 +29,17 @@ const Referrals = () => {
   const [referralLink, setReferralLink] = useState("");
   const [referredUsers, setReferredUsers] = useState<ReferredUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const networkRef = useRef<HTMLDivElement>(null);
+  
+  // Mock data for the statistics
+  const [stats, setStats] = useState({
+    totalDownlines: 6,
+    activeConsultants: 5,
+    teamSales: 5230,
+    teamPerformance: "This month's team performance",
+    commission: 523,
+    commissionPercentage: 10
+  });
 
   useEffect(() => {
     const checkUser = async () => {
@@ -74,24 +84,15 @@ const Referrals = () => {
             status: "active"
           }));
           setReferredUsers(mappedReferrals);
-        } else {
-          // Fallback to placeholder data
-          setReferredUsers([
-            {
-              id: "ref1",
-              name: "John Doe",
-              email: "j****@example.com",
-              date: new Date(Date.now() - 7 * 86400000).toISOString(),
-              status: "active"
-            },
-            {
-              id: "ref2",
-              name: "Sarah Smith",
-              email: "s****@example.com",
-              date: new Date(Date.now() - 14 * 86400000).toISOString(),
-              status: "active"
-            }
-          ]);
+          
+          // Update stats based on actual data
+          if (mappedReferrals.length > 0) {
+            setStats(prev => ({
+              ...prev,
+              totalDownlines: mappedReferrals.length,
+              activeConsultants: mappedReferrals.filter(r => r.status === "active").length
+            }));
+          }
         }
       } catch (error) {
         console.error("Error:", error);
@@ -131,186 +132,165 @@ const Referrals = () => {
   
   return (
     <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Referral Program</h1>
-            <p className="text-muted-foreground">Invite friends and earn rewards</p>
-          </div>
-          <Card className="w-full md:w-auto p-4 flex gap-3 items-center">
-            <Users className="h-5 w-5 text-primary" />
-            <div>
-              <p className="text-sm text-muted-foreground">Team Size</p>
-              <p className="text-xl font-bold">{profile?.team_size || referredUsers.length || 0}</p>
-            </div>
+      <div className="p-6">
+        <h1 className="text-2xl font-bold mb-6">My Referrals</h1>
+        
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Total Downlines Card */}
+          <Card className="border rounded-lg overflow-hidden shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">Total Downlines</h3>
+              <div className="flex items-start">
+                <div className="bg-purple-100 p-2 rounded-full mr-4">
+                  <Users className="h-6 w-6 text-purple-600" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">{stats.totalDownlines}</p>
+                  <p className="text-sm text-gray-500 mt-1">{stats.activeConsultants} active consultants</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Team Sales Card */}
+          <Card className="border rounded-lg overflow-hidden shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">Team Sales</h3>
+              <div className="flex items-start">
+                <div className="bg-green-100 p-2 rounded-full mr-4">
+                  <Award className="h-6 w-6 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">${stats.teamSales.toLocaleString()}</p>
+                  <p className="text-sm text-gray-500 mt-1">{stats.teamPerformance}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          {/* Commission Card */}
+          <Card className="border rounded-lg overflow-hidden shadow-sm">
+            <CardContent className="p-6">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">Commission</h3>
+              <div className="flex items-start">
+                <div className="bg-yellow-100 p-2 rounded-full mr-4">
+                  <Award className="h-6 w-6 text-yellow-600" />
+                </div>
+                <div>
+                  <p className="text-3xl font-bold">${stats.commission}</p>
+                  <p className="text-sm text-gray-500 mt-1">{stats.commissionPercentage}% of total team sales</p>
+                </div>
+              </div>
+            </CardContent>
           </Card>
         </div>
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Referral Link</CardTitle>
-                <CardDescription>Share this link with friends to invite them to join</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Referral code */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Your Referral Code</p>
-                  <div className="flex">
-                    <Input 
-                      value={referralCode} 
-                      readOnly 
-                      className="rounded-r-none"
-                    />
-                    <Button 
-                      variant="outline" 
-                      className="rounded-l-none"
-                      onClick={() => copyToClipboard(referralCode, "code")}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
+        {/* Referral Network Visualization */}
+        <div className="mb-8">
+          <Card className="border rounded-lg overflow-hidden shadow-sm">
+            <CardContent className="p-6">
+              <div ref={networkRef} className="flex flex-col items-center justify-center h-[400px] relative">
+                {/* You */}
+                <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                  <div className="flex flex-col items-center">
+                    <div className="w-20 h-20 bg-gray-200 rounded-full mb-2"></div>
+                    <p className="text-sm font-medium">You</p>
                   </div>
                 </div>
                 
-                {/* Referral link */}
-                <div className="space-y-2">
-                  <p className="text-sm font-medium">Your Referral Link</p>
-                  <div className="flex">
-                    <Input 
-                      value={referralLink} 
-                      readOnly 
-                      className="rounded-r-none"
-                    />
-                    <Button 
-                      className="rounded-l-none"
-                      onClick={() => copyToClipboard(referralLink, "link")}
-                    >
-                      <Copy className="h-4 w-4 mr-2" />
-                      Copy
-                    </Button>
-                  </div>
+                {/* First level referrals */}
+                <div className="absolute bottom-1/3 left-0 right-0 flex justify-around">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={`level1-${i}`} className="flex flex-col items-center">
+                      <div className="w-14 h-14 bg-gray-200 rounded-full mb-1"></div>
+                    </div>
+                  ))}
                 </div>
                 
-                {/* Email invitation */}
-                <div className="space-y-2 pt-4 border-t">
-                  <p className="text-sm font-medium">Send Invitation via Email</p>
-                  <div className="flex gap-2">
-                    <Input 
-                      placeholder="friend@example.com" 
-                      type="email"
-                    />
-                    <Button onClick={sendReferralEmail}>
-                      <Mail className="h-4 w-4 mr-2" />
-                      Send
-                    </Button>
+                {/* Second level referrals (smaller) */}
+                <div className="absolute bottom-1/4 left-1/4 right-1/4 flex justify-around">
+                  {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                    <div key={`level2-${i}`} className="flex flex-col items-center">
+                      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                    </div>
+                  ))}
+                </div>
+                
+                {/* Third level referrals (smallest) */}
+                <div className="absolute bottom-10 left-1/3 right-1/3 flex justify-around">
+                  {[1, 2, 3, 4, 5, 6].map((i) => (
+                    <div key={`level3-${i}`} className="flex flex-col items-center">
+                      <div className="w-6 h-6 bg-gray-200 rounded-full"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+        
+        {/* Sharing Tools */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-3">
+            <Card className="border rounded-lg overflow-hidden shadow-sm">
+              <CardContent className="p-6">
+                <h3 className="text-lg font-medium mb-4">Share Your Referral Link</h3>
+                
+                <div className="space-y-4">
+                  {/* Referral code */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Your Referral Code</p>
+                    <div className="flex">
+                      <Input 
+                        value={referralCode} 
+                        readOnly 
+                        className="rounded-r-none border-r-0"
+                      />
+                      <Button 
+                        variant="outline" 
+                        className="rounded-l-none border-l-0"
+                        onClick={() => copyToClipboard(referralCode, "code")}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-              <CardFooter className="bg-muted/20 flex justify-between items-center">
-                <p className="text-sm text-muted-foreground">
-                  Earn <span className="font-medium">10%</span> commission on referred sales
-                </p>
-                <Share2 className="h-5 w-5 text-muted-foreground" />
-              </CardFooter>
-            </Card>
-            
-            <Card className="mt-6">
-              <CardHeader>
-                <CardTitle>Team Members</CardTitle>
-                <CardDescription>People you've referred who joined our platform</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {referredUsers.length > 0 ? (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Joined</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {referredUsers.map((referral) => (
-                        <TableRow key={referral.id}>
-                          <TableCell className="font-medium">{referral.name}</TableCell>
-                          <TableCell>{referral.email}</TableCell>
-                          <TableCell>{new Date(referral.date).toLocaleDateString()}</TableCell>
-                          <TableCell>
-                            {referral.status === "active" ? (
-                              <span className="flex items-center text-green-600">
-                                <Check className="h-4 w-4 mr-1" /> Active
-                              </span>
-                            ) : (
-                              <span className="text-gray-500">Pending</span>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                ) : (
-                  <div className="text-center py-8">
-                    <Users className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-muted-foreground">You haven't referred anyone yet.</p>
+                  
+                  {/* Referral link */}
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium">Your Referral Link</p>
+                    <div className="flex">
+                      <Input 
+                        value={referralLink} 
+                        readOnly 
+                        className="rounded-r-none border-r-0"
+                      />
+                      <Button 
+                        className="rounded-l-none"
+                        onClick={() => copyToClipboard(referralLink, "link")}
+                      >
+                        <Copy className="h-4 w-4 mr-2" />
+                        Copy
+                      </Button>
+                    </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Referral Stats</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-5 w-5 text-blue-500" />
-                    <span>Total Referrals</span>
+                  
+                  {/* Email invitation */}
+                  <div className="space-y-2 pt-4 border-t mt-4">
+                    <p className="text-sm font-medium">Send Invitation via Email</p>
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="friend@example.com" 
+                        type="email"
+                      />
+                      <Button onClick={sendReferralEmail}>
+                        <Mail className="h-4 w-4 mr-2" />
+                        Send
+                      </Button>
+                    </div>
                   </div>
-                  <span className="font-bold">{profile?.team_size || referredUsers.length || 0}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <TrendingUp className="h-5 w-5 text-green-500" />
-                    <span>Earnings</span>
-                  </div>
-                  <span className="font-bold">${profile?.referral_earnings || "0.00"}</span>
-                </div>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <Award className="h-5 w-5 text-amber-500" />
-                    <span>Rank</span>
-                  </div>
-                  <span className="font-bold">{profile?.rank || "Starter"}</span>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle>Benefits</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <p className="text-sm">10% commission on direct referral purchases</p>
-                </div>
-                <div className="flex gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <p className="text-sm">5% commission on second level referral purchases</p>
-                </div>
-                <div className="flex gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <p className="text-sm">Special bonuses for every 5 successful referrals</p>
-                </div>
-                <div className="flex gap-2">
-                  <Check className="h-5 w-5 text-green-500 flex-shrink-0" />
-                  <p className="text-sm">Rank advancement based on team size and volume</p>
                 </div>
               </CardContent>
             </Card>
