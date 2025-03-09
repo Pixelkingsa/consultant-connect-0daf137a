@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,7 +10,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { Bell, ChevronDown, CreditCard, Home, LogOut, Menu, Package, Settings, ShoppingCart, User, Users } from "lucide-react";
-import Navbar from "@/components/Navbar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -90,9 +90,9 @@ const AppLayout = ({ children }: AppLayoutProps) => {
   
   return (
     <div className="min-h-screen flex flex-col">
-      <Navbar />
+      {/* No Navbar here - we've removed it since this layout is for authenticated users */}
       
-      <div className="flex flex-1 pt-16">
+      <div className="flex flex-1">
         {/* Sidebar for desktop */}
         <aside className="hidden md:flex flex-col w-64 border-r bg-card">
           <div className="p-6">

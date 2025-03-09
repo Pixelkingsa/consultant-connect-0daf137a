@@ -1,21 +1,23 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
-import { Minus, Plus, X, ShoppingBag, ArrowRight, CreditCard } from "lucide-react";
-import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
+import { Loader2, Trash2, MinusCircle, PlusCircle, ShoppingBag } from "lucide-react";
 import { CartItem } from "@/types/cart";
 
 const Cart = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingItem, setUpdatingItem] = useState<string | null>(null);
 
   useEffect(() => {
     const checkUser = async () => {
@@ -30,61 +32,29 @@ const Cart = () => {
         setUser(user);
         
         // Fetch cart items
-        const { data: cartData, error: cartError } = await supabase
+        const { data, error: cartError } = await supabase
           .from("cart_items")
-          .select("*, products(name, price, image_url, vp_points)")
-          .eq("user_id", user.id);
+          .select(`
+            *,
+            products:product_id (
+              name,
+              price,
+              image_url,
+              vp_points
+            )
+          `)
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false });
           
         if (cartError) {
-          console.error("Error fetching cart:", cartError);
-          // Fallback to placeholder data
-          setCartItems([
-            {
-              id: "placeholder-1",
-              user_id: user.id,
-              product_id: "prod-1",
-              name: "Vamna Essence Parfum",
-              price: 79.99,
-              quantity: 1,
-              image_url: "https://i.pravatar.cc/150?img=1",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: "placeholder-2",
-              user_id: user.id,
-              product_id: "prod-2",
-              name: "Vamna Body Lotion",
-              price: 45.99,
-              quantity: 2,
-              image_url: "https://i.pravatar.cc/150?img=2",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            },
-            {
-              id: "placeholder-3",
-              user_id: user.id,
-              product_id: "prod-3",
-              name: "Vamna Cologne for Men",
-              price: 89.99,
-              quantity: 1,
-              image_url: "https://i.pravatar.cc/150?img=3",
-              created_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            }
-          ] as any[]);
-        } else if (cartData && cartData.length > 0) {
-          // Map fetched data to expected format
-          const mappedItems = cartData.map(item => ({
-            ...item,
-            name: item.products?.name || "Unknown Product",
-            price: item.products?.price || 0,
-            image_url: item.products?.image_url || "https://i.pravatar.cc/150?img=1"
-          }));
-          setCartItems(mappedItems as any[]);
+          console.error("Error fetching cart items:", cartError);
+          toast({
+            title: "Error",
+            description: "Could not load your cart items.",
+            variant: "destructive",
+          });
         } else {
-          // If cart is empty but table exists
-          setCartItems([]);
+          setCartItems(data || []);
         }
       } catch (error) {
         console.error("Error:", error);
@@ -95,75 +65,102 @@ const Cart = () => {
     };
     
     checkUser();
-  }, [navigate]);
-
-  const updateQuantity = async (id: string, change: number) => {
-    const updatedItems = cartItems.map(item => 
-      item.id === id ? 
-        { ...item, quantity: Math.max(1, item.quantity + change) } : 
-        item
-    );
+  }, [navigate, toast]);
+  
+  const updateQuantity = async (itemId: string, newQuantity: number) => {
+    if (newQuantity < 1) return;
     
-    setCartItems(updatedItems);
+    setUpdatingItem(itemId);
     
-    // If using real database cart
-    if (!id.startsWith("placeholder")) {
-      try {
-        const item = updatedItems.find(item => item.id === id);
-        if (item) {
-          const { error } = await supabase
-            .from("cart_items")
-            .update({ quantity: item.quantity })
-            .eq("id", id);
-            
-          if (error) throw error;
-        }
-      } catch (error: any) {
+    try {
+      const { error } = await supabase
+        .from("cart_items")
+        .update({ quantity: newQuantity })
+        .eq("id", itemId);
+        
+      if (error) {
+        console.error("Error updating quantity:", error);
         toast({
-          title: "Error updating quantity",
-          description: error.message,
-          variant: "destructive"
+          title: "Error",
+          description: "Could not update item quantity.",
+          variant: "destructive",
         });
+        return;
       }
+      
+      // Update local state
+      setCartItems(prev => 
+        prev.map(item => 
+          item.id === itemId 
+            ? { ...item, quantity: newQuantity } 
+            : item
+        )
+      );
+      
+      toast({
+        title: "Cart Updated",
+        description: "Item quantity has been updated.",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setUpdatingItem(null);
     }
   };
-
-  const removeItem = async (id: string) => {
-    setCartItems(prevItems => prevItems.filter(item => item.id !== id));
+  
+  const removeItem = async (itemId: string) => {
+    setUpdatingItem(itemId);
     
-    // If using real database cart
-    if (!id.startsWith("placeholder")) {
-      try {
-        const { error } = await supabase
-          .from("cart_items")
-          .delete()
-          .eq("id", id);
-          
-        if (error) throw error;
-      } catch (error: any) {
+    try {
+      const { error } = await supabase
+        .from("cart_items")
+        .delete()
+        .eq("id", itemId);
+        
+      if (error) {
+        console.error("Error removing item:", error);
         toast({
-          title: "Error removing item",
-          description: error.message,
-          variant: "destructive"
+          title: "Error",
+          description: "Could not remove item from cart.",
+          variant: "destructive",
         });
+        return;
       }
+      
+      // Update local state
+      setCartItems(prev => prev.filter(item => item.id !== itemId));
+      
+      toast({
+        title: "Item Removed",
+        description: "Item has been removed from your cart.",
+      });
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setUpdatingItem(null);
     }
-    
-    toast({
-      title: "Item removed",
-      description: "The item has been removed from your cart."
-    });
   };
-
-  const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  const shipping = 5.99;
-  const tax = subtotal * 0.08;
-  const total = subtotal + shipping + tax;
-
+  
+  // Calculate cart totals
+  const calculateSubtotal = () => {
+    return cartItems.reduce((total, item) => {
+      return total + (item.products?.price || 0) * item.quantity;
+    }, 0);
+  };
+  
+  const calculateTax = () => {
+    return calculateSubtotal() * 0.08; // 8% tax
+  };
+  
+  const calculateTotal = () => {
+    return calculateSubtotal() + calculateTax();
+  };
+  
   const handleCheckout = () => {
+    // Placeholder for checkout functionality
     toast({
-      title: "Proceeding to checkout",
-      description: "This feature is currently under development."
+      title: "Checkout",
+      description: "Checkout functionality will be implemented soon.",
     });
   };
   
@@ -180,105 +177,139 @@ const Cart = () => {
   return (
     <AppLayout>
       <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Shopping Cart</h1>
-          <Button variant="outline" onClick={() => navigate("/shop")}>Continue Shopping</Button>
-        </div>
-
-        {cartItems.length > 0 ? (
+        <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
+        
+        {cartItems.length === 0 ? (
+          <Card>
+            <CardContent className="p-10 flex flex-col items-center justify-center">
+              <ShoppingBag className="h-16 w-16 text-muted-foreground mb-4" />
+              <p className="text-xl font-medium mb-2">Your cart is empty</p>
+              <p className="text-muted-foreground mb-6">Looks like you haven't added anything to your cart yet.</p>
+              <Button onClick={() => navigate("/shop")}>
+                Browse Products
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Cart Items Table */}
             <div className="lg:col-span-2">
               <Card>
-                <CardHeader>
-                  <CardTitle className="text-xl">Cart Items ({cartItems.length})</CardTitle>
+                <CardHeader className="pb-0">
+                  <CardTitle>Cart Items ({cartItems.length})</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-6">
-                  {cartItems.map((item, index) => (
-                    <motion.div 
-                      key={item.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.1 }}
-                      className="flex items-center gap-4 pb-4 border-b last:border-0 last:pb-0"
-                    >
-                      <div className="w-20 h-20 rounded-md overflow-hidden bg-gray-100 flex-shrink-0">
-                        <img 
-                          src={item.image_url} 
-                          alt={item.name} 
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <div className="flex-grow">
-                        <h3 className="font-medium">{item.name}</h3>
-                        <p className="text-muted-foreground">Unit price: ${item.price.toFixed(2)}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8 rounded-full"
-                          onClick={() => updateQuantity(item.id, -1)}
-                        >
-                          <Minus className="h-4 w-4" />
-                        </Button>
-                        <span className="w-8 text-center">{item.quantity}</span>
-                        <Button 
-                          variant="outline" 
-                          size="icon" 
-                          className="h-8 w-8 rounded-full"
-                          onClick={() => updateQuantity(item.id, 1)}
-                        >
-                          <Plus className="h-4 w-4" />
-                        </Button>
-                      </div>
-                      <div className="text-right min-w-[80px]">
-                        <div className="font-medium">${(item.price * item.quantity).toFixed(2)}</div>
-                        <Button 
-                          variant="ghost" 
-                          size="icon" 
-                          className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-950"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  ))}
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product</TableHead>
+                        <TableHead>Quantity</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {cartItems.map((item) => (
+                        <TableRow key={item.id}>
+                          <TableCell>
+                            <div className="flex items-center space-x-3">
+                              <div className="h-12 w-12 rounded-md overflow-hidden">
+                                <img 
+                                  src={item.products?.image_url || "/placeholder.svg"} 
+                                  alt={item.products?.name || "Product"} 
+                                  className="h-full w-full object-cover"
+                                />
+                              </div>
+                              <div>
+                                <p className="font-medium">{item.products?.name}</p>
+                                <p className="text-sm text-muted-foreground">
+                                  ID: {item.product_id.substring(0, 8)}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                disabled={!!updatingItem}
+                              >
+                                <MinusCircle className="h-4 w-4" />
+                              </Button>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={item.quantity}
+                                onChange={(e) => {
+                                  const newQuantity = parseInt(e.target.value);
+                                  if (!isNaN(newQuantity) && newQuantity > 0) {
+                                    updateQuantity(item.id, newQuantity);
+                                  }
+                                }}
+                                className="w-16 text-center"
+                              />
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8"
+                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                disabled={!!updatingItem}
+                              >
+                                <PlusCircle className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                          <TableCell>${(item.products?.price || 0) * item.quantity}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-destructive"
+                              onClick={() => removeItem(item.id)}
+                              disabled={!!updatingItem}
+                            >
+                              {updatingItem === item.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </CardContent>
               </Card>
             </div>
-
-            <div className="lg:col-span-1">
-              <Card className="sticky top-24">
+            
+            {/* Order Summary */}
+            <div>
+              <Card>
                 <CardHeader>
                   <CardTitle>Order Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Subtotal</span>
-                    <span>${subtotal.toFixed(2)}</span>
+                    <span>Subtotal</span>
+                    <span>${calculateSubtotal().toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Shipping</span>
-                    <span>${shipping.toFixed(2)}</span>
+                    <span>Tax (8%)</span>
+                    <span>${calculateTax().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Tax</span>
-                    <span>${tax.toFixed(2)}</span>
-                  </div>
-                  <Separator />
-                  <div className="flex justify-between font-medium text-lg">
+                  <div className="border-t pt-4 flex justify-between font-bold">
                     <span>Total</span>
-                    <span>${total.toFixed(2)}</span>
+                    <span>${calculateTotal().toFixed(2)}</span>
                   </div>
-                </CardContent>
-                <CardFooter className="flex flex-col gap-4">
                   <Button 
-                    className="w-full" 
-                    size="lg" 
+                    className="w-full mt-6" 
+                    size="lg"
                     onClick={handleCheckout}
                   >
-                    <CreditCard className="mr-2 h-5 w-5" />
                     Proceed to Checkout
                   </Button>
                   <Button 
@@ -286,22 +317,11 @@ const Cart = () => {
                     className="w-full" 
                     onClick={() => navigate("/shop")}
                   >
-                    <ShoppingBag className="mr-2 h-5 w-5" />
                     Continue Shopping
                   </Button>
-                </CardFooter>
+                </CardContent>
               </Card>
             </div>
-          </div>
-        ) : (
-          <div className="text-center py-16 bg-muted/20 rounded-lg">
-            <ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-2xl font-medium mb-2">Your cart is empty</h2>
-            <p className="text-muted-foreground mb-6">Looks like you haven't added any products to your cart yet.</p>
-            <Button size="lg" onClick={() => navigate("/shop")}>
-              Browse Products
-              <ArrowRight className="ml-2 h-5 w-5" />
-            </Button>
           </div>
         )}
       </div>
