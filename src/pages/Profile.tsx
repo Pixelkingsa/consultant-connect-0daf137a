@@ -1,9 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, Camera } from "lucide-react";
+import { Camera, UserRound } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -65,7 +64,6 @@ const Profile = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Get user profile with rank information
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
         .select("*, ranks(*)")
@@ -81,7 +79,6 @@ const Profile = () => {
         });
       } else {
         setProfile(profileData as ExtendedProfile);
-        // Set form data from profile
         setFormData({
           full_name: profileData?.full_name || "",
           email: user.email || "",
@@ -121,10 +118,8 @@ const Profile = () => {
     checkUser();
   }, [navigate, toast]);
 
-  // Calculate rank progress for the current profile
   const getRankProgress = () => calculateRankProgress(profile);
   
-  // Get the next rank name
   const getNextRank = () => getNextRankName(profile);
 
   const uploadProfilePicture = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,24 +132,21 @@ const Profile = () => {
       
       const file = event.target.files[0];
       const fileExt = file.name.split('.').pop();
-      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+      const fileName = `${user.id}/${Math.random().toString(36).substring(2)}.${fileExt}`;
       
-      // Upload the file to Supabase Storage
-      const { error: uploadError } = await supabase.storage
+      const { error: uploadError, data: uploadData } = await supabase.storage
         .from('avatars')
-        .upload(filePath, file);
+        .upload(fileName, file);
         
       if (uploadError) {
         throw uploadError;
       }
       
-      // Get the public URL
       const { data: urlData } = supabase.storage
         .from('avatars')
-        .getPublicUrl(filePath);
+        .getPublicUrl(fileName);
         
       if (urlData) {
-        // Update the profile with the new avatar URL
         const { error: updateError } = await supabase
           .from('profiles')
           .update({ avatar_url: urlData.publicUrl })
@@ -164,7 +156,6 @@ const Profile = () => {
           throw updateError;
         }
         
-        // Refresh the profile
         await fetchProfile(user.id);
         
         toast({
@@ -173,6 +164,7 @@ const Profile = () => {
         });
       }
     } catch (error: any) {
+      console.error("Upload error:", error);
       toast({
         title: "Error uploading picture",
         description: error.message,

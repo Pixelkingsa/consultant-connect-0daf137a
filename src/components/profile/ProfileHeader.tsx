@@ -2,6 +2,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { UserRound } from "lucide-react";
 
 interface ProfileHeaderProps {
   avatarUrl: string | null;
@@ -16,8 +17,12 @@ const ProfileHeader = ({ avatarUrl, fullName, rankName }: ProfileHeaderProps) =>
         {avatarUrl ? (
           <AvatarImage src={avatarUrl} alt={fullName || "User"} />
         ) : (
-          <AvatarFallback>
-            {fullName ? fullName.charAt(0).toUpperCase() : "U"}
+          <AvatarFallback className="bg-primary/10">
+            {fullName ? (
+              fullName.charAt(0).toUpperCase()
+            ) : (
+              <UserRound className="h-8 w-8 text-primary" />
+            )}
           </AvatarFallback>
         )}
       </Avatar>
