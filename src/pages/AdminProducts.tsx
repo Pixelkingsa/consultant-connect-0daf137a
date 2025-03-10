@@ -278,9 +278,9 @@ const AdminProducts = () => {
                   <TableRow>
                     <TableHead>Image</TableHead>
                     <TableHead>Product Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
                     
+                    <TableHead>Price</TableHead>
+                    <TableHead>VP Points</TableHead>
                     <TableHead>Stock</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
@@ -370,7 +370,10 @@ const AdminProducts = () => {
                 <Input id="vp_points" name="vp_points" type="number" min="0" value={formData.vp_points} onChange={handleInputChange} />
               </div>
               
-              
+              <div className="space-y-2">
+                <Label htmlFor="stock_quantity">Stock Quantity</Label>
+                <Input id="stock_quantity" name="stock_quantity" type="number" min="0" value={formData.stock_quantity} onChange={handleInputChange} />
+              </div>
               
               <div className="space-y-2">
                 <Label htmlFor="category">Category</Label>
