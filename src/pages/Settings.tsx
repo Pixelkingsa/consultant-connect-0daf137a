@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/ThemeProvider";
 import AppLayout from "@/components/layout/AppLayout";
 import { 
   Card, 
@@ -60,6 +62,7 @@ const notificationFormSchema = z.object({
 const Settings = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("account");
@@ -440,15 +443,27 @@ const Settings = () => {
                       Select your preferred color theme.
                     </p>
                     <div className="grid grid-cols-3 gap-2 pt-2">
-                      <Button variant="outline" className="justify-start">
+                      <Button 
+                        variant={theme === "light" ? "default" : "outline"} 
+                        className="justify-start"
+                        onClick={() => setTheme("light")}
+                      >
                         <Sun className="h-4 w-4 mr-2" />
                         Light
                       </Button>
-                      <Button variant="outline" className="justify-start">
+                      <Button 
+                        variant={theme === "dark" ? "default" : "outline"} 
+                        className="justify-start"
+                        onClick={() => setTheme("dark")}
+                      >
                         <Moon className="h-4 w-4 mr-2" />
                         Dark
                       </Button>
-                      <Button variant="default" className="justify-start">
+                      <Button 
+                        variant={theme === "system" ? "default" : "outline"} 
+                        className="justify-start"
+                        onClick={() => setTheme("system")}
+                      >
                         <Laptop className="h-4 w-4 mr-2" />
                         System
                       </Button>
@@ -468,7 +483,10 @@ const Settings = () => {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button>Save Preferences</Button>
+                  <Button onClick={() => toast({
+                    title: "Appearance settings saved",
+                    description: "Your theme preferences have been updated.",
+                  })}>Save Preferences</Button>
                 </CardFooter>
               </Card>
             )}
