@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,12 +12,6 @@ import {
   CardHeader, 
   CardTitle 
 } from "@/components/ui/card";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
 import { 
   Form, 
   FormControl, 
@@ -45,6 +38,14 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Bell, User, Shield, Moon, Mail, Globe, Sun, Laptop } from "lucide-react";
 
+interface ExtendedProfile {
+  id: string;
+  full_name: string | null;
+  phone: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 const profileFormSchema = z.object({
   email: z.string().email(),
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -64,37 +65,17 @@ const Settings = () => {
   const { toast } = useToast();
   const { theme, setTheme } = useTheme();
   const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<ExtendedProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("account");
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          navigate("/auth");
-          return;
-        }
-        
-        setUser(user);
-      } catch (error) {
-        console.error("Error:", error);
-        navigate("/auth");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkUser();
-  }, [navigate]);
 
   const profileForm = useForm<z.infer<typeof profileFormSchema>>({
     resolver: zodResolver(profileFormSchema),
     defaultValues: {
-      email: "jane.doe@example.com",
-      name: "Jane Doe",
-      phone: "+1 (555) 123-4567",
+      email: "",
+      name: "",
+      phone: "",
       language: "en",
     },
   });
@@ -109,11 +90,96 @@ const Settings = () => {
     },
   });
 
-  function onProfileSubmit(data: z.infer<typeof profileFormSchema>) {
-    toast({
-      title: "Profile updated",
-      description: "Your profile information has been saved.",
-    });
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+        toast({
+          title: "Error loading profile",
+          description: "Could not load your profile data. Please try again later.",
+          variant: "destructive",
+        });
+      } else {
+        setProfile(profileData as ExtendedProfile);
+        
+        // Get email from user object if it exists
+        const userEmail = user?.email || "";
+        
+        // Update form with fetched data
+        profileForm.reset({
+          email: userEmail,
+          name: profileData?.full_name || "",
+          phone: profileData?.phone || "",
+          language: "en", // Default language
+        });
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        
+        if (error || !user) {
+          navigate("/auth");
+          return;
+        }
+        
+        setUser(user);
+        await fetchProfile(user.id);
+        
+      } catch (error) {
+        console.error("Error:", error);
+        navigate("/auth");
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
+
+  async function onProfileSubmit(data: z.infer<typeof profileFormSchema>) {
+    if (!user?.id) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: data.name,
+          phone: data.phone,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("id", user.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile updated",
+        description: "Your profile information has been saved.",
+      });
+      
+      // Refresh profile data
+      await fetchProfile(user.id);
+    } catch (error: any) {
+      toast({
+        title: "Error updating profile",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
   }
 
   function onNotificationSubmit(data: z.infer<typeof notificationFormSchema>) {
@@ -214,8 +280,11 @@ const Settings = () => {
                           <FormItem>
                             <FormLabel>Email</FormLabel>
                             <FormControl>
-                              <Input placeholder="Your email" {...field} />
+                              <Input placeholder="Your email" {...field} disabled className="bg-gray-50" />
                             </FormControl>
+                            <FormDescription>
+                              Contact support to change email
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
@@ -260,7 +329,9 @@ const Settings = () => {
                         )}
                       />
                       
-                      <Button type="submit">Save Changes</Button>
+                      <Button type="submit" disabled={saving}>
+                        {saving ? "Saving..." : "Save Changes"}
+                      </Button>
                     </form>
                   </Form>
                 </CardContent>
