@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -79,9 +80,13 @@ const Profile = () => {
         });
       } else {
         setProfile(profileData as ExtendedProfile);
+        
+        // Fix: Only set email from user object if it exists
+        const userEmail = user?.email || "";
+        
         setFormData({
           full_name: profileData?.full_name || "",
-          email: user.email || "",
+          email: userEmail,
           phone: profileData?.phone || "",
           address: profileData?.address || "",
           city: profileData?.city || "",
@@ -236,8 +241,8 @@ const Profile = () => {
                 <PersonalInfoForm 
                   formData={formData}
                   setFormData={setFormData}
-                  userId={user.id}
-                  refreshProfile={() => fetchProfile(user.id)}
+                  userId={user?.id || ""}
+                  refreshProfile={() => user?.id && fetchProfile(user.id)}
                 />
               </CardContent>
             </Card>
