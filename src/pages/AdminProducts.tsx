@@ -280,7 +280,7 @@ const AdminProducts = () => {
                     <TableHead>Product Name</TableHead>
                     <TableHead>Category</TableHead>
                     <TableHead>Price</TableHead>
-                    <TableHead>VP Points</TableHead>
+                    
                     <TableHead>Stock</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
