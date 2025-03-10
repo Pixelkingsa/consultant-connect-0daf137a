@@ -3,9 +3,11 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Upload, Camera } from "lucide-react";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 // Import refactored components
 import ProfileHeader from "@/components/profile/ProfileHeader";
@@ -50,6 +52,7 @@ const Profile = () => {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<ExtendedProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -124,6 +127,62 @@ const Profile = () => {
   // Get the next rank name
   const getNextRank = () => getNextRankName(profile);
 
+  const uploadProfilePicture = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      setUploading(true);
+      
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error("You must select an image to upload.");
+      }
+      
+      const file = event.target.files[0];
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${user.id}-${Math.random()}.${fileExt}`;
+      
+      // Upload the file to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('avatars')
+        .upload(filePath, file);
+        
+      if (uploadError) {
+        throw uploadError;
+      }
+      
+      // Get the public URL
+      const { data: urlData } = supabase.storage
+        .from('avatars')
+        .getPublicUrl(filePath);
+        
+      if (urlData) {
+        // Update the profile with the new avatar URL
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({ avatar_url: urlData.publicUrl })
+          .eq('id', user.id);
+          
+        if (updateError) {
+          throw updateError;
+        }
+        
+        // Refresh the profile
+        await fetchProfile(user.id);
+        
+        toast({
+          title: "Profile picture updated",
+          description: "Your profile picture has been updated successfully.",
+        });
+      }
+    } catch (error: any) {
+      toast({
+        title: "Error uploading picture",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -152,7 +211,35 @@ const Profile = () => {
               <ProfileHeader 
                 avatarUrl={profile?.avatar_url} 
                 fullName={profile?.full_name} 
+                rankName={profile?.ranks?.name}
               />
+              
+              <div className="flex justify-center px-6 -mt-2 mb-4">
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="profile-picture"
+                    accept="image/*"
+                    onChange={uploadProfilePicture}
+                    className="sr-only"
+                    disabled={uploading}
+                  />
+                  <label
+                    htmlFor="profile-picture"
+                    className="flex items-center gap-2 cursor-pointer text-sm text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {uploading ? (
+                      <>Uploading...</>
+                    ) : (
+                      <>
+                        <Camera className="h-4 w-4" />
+                        Change picture
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+              
               <CardContent className="space-y-6">
                 <PersonalInfoForm 
                   formData={formData}
