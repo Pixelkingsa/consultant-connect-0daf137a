@@ -35,9 +35,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       // Check if the user has the admin role
       const { data, error } = await supabase
         .from("user_roles")
-        .select("roles(*)")
+        .select("*")
         .eq("user_id", userId)
-        .eq("roles.role_name", "admin")
+        .eq("role_id", 1) // Assuming role_id 1 is admin
         .single();
       
       if (error && error.code !== "PGRST116") { // PGRST116 is "no rows returned"

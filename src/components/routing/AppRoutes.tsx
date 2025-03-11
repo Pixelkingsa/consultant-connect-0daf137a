@@ -1,5 +1,6 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -26,6 +27,7 @@ export const AppRoutes = () => {
   const { isAuthenticated, isAdmin, userId } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [initialized, setInitialized] = useState(false);
 
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
@@ -36,27 +38,28 @@ export const AppRoutes = () => {
     );
   }
 
-  // Log current route and auth status for debugging
+  // Handle role-based routing
   useEffect(() => {
     console.log(`Current route: ${location.pathname}`);
     console.log(`Auth status: isAuthenticated=${isAuthenticated}, isAdmin=${isAdmin}, userId=${userId}`);
     
-    // Handle specific routing based on role
     if (isAuthenticated) {
       if (isAdmin) {
-        // If admin is on a user-specific route, redirect to admin dashboard
+        // Admin user should be on admin routes
         if (location.pathname === "/dashboard" || location.pathname === "/user-dashboard") {
           console.log("Admin user detected, redirecting to admin dashboard");
           navigate("/admin-dashboard", { replace: true });
         }
       } else {
-        // If regular user tries to access admin routes, redirect to user dashboard
+        // Regular user should not access admin routes
         if (location.pathname.startsWith("/admin")) {
           console.log("Regular user detected on admin route, redirecting to dashboard");
           navigate("/dashboard", { replace: true });
         }
       }
     }
+    
+    setInitialized(true);
   }, [isAuthenticated, isAdmin, location.pathname, userId, navigate]);
 
   return (
