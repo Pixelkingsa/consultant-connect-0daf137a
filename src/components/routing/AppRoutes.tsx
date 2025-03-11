@@ -29,15 +29,6 @@ export const AppRoutes = () => {
   const location = useLocation();
   const [initialized, setInitialized] = useState(false);
 
-  // Show loading state while checking authentication
-  if (isAuthenticated === null) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader size="lg" text="Loading application..." />
-      </div>
-    );
-  }
-
   // Handle role-based routing
   useEffect(() => {
     console.log(`Current route: ${location.pathname}`);
@@ -61,6 +52,15 @@ export const AppRoutes = () => {
     
     setInitialized(true);
   }, [isAuthenticated, isAdmin, location.pathname, userId, navigate]);
+
+  // Show loading state while checking authentication
+  if (isAuthenticated === null) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader size="lg" text="Loading application..." />
+      </div>
+    );
+  }
 
   return (
     <>

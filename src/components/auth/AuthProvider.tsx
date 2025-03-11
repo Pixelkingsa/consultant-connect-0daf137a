@@ -109,15 +109,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       async (event, session) => {
         console.log("Auth state change event:", event);
         
-        setIsAuthenticated(!!session);
-        
-        // Reset user info when logged out
         if (!session) {
           console.log("No session found, setting user as logged out");
+          setIsAuthenticated(false);
           setUserId(null);
           setIsAdmin(false);
           return;
         }
+        
+        setIsAuthenticated(true);
         
         // Set user ID and check admin status when logged in
         if (session?.user) {
