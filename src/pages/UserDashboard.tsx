@@ -7,6 +7,8 @@ import PerformanceChart from "@/components/dashboard/PerformanceChart";
 import UpcomingEvents from "@/components/dashboard/UpcomingEvents";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { getPerformanceData, getMonthlySalesTotal } from "@/utils/dashboardUtils";
+import DashboardLoader from "@/components/dashboard/DashboardLoader";
+import DashboardContent from "@/components/dashboard/DashboardContent";
 
 const UserDashboard = () => {
   const { 
@@ -19,13 +21,7 @@ const UserDashboard = () => {
   
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <p className="text-lg text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
+    return <DashboardLoader />;
   }
   
   // Calculate data for the dashboard
@@ -39,32 +35,14 @@ const UserDashboard = () => {
   
   return (
     <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        {/* Dashboard Header */}
-        <DashboardHeader 
-          profileName={profile?.full_name}
-          userEmail={user?.email}
-          rankName={rankInfo?.name}
-          teamSize={profile?.team_size || 0}
-          personalVolume={profile?.personal_volume || 0}
-        />
-        
-        {/* Stats Cards */}
-        <DashboardStatsGrid 
-          monthlySalesTotal={monthlySalesTotal}
-          teamSize={profile?.team_size || 0}
-          personalVolume={profile?.personal_volume || 0}
-          groupVolume={profile?.group_volume || 0}
-          rankProgress={Number(rankProgress)}
-          nextRankName={rankInfo?.name || "Loading..."}
-        />
-        
-        {/* Charts and Events */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <PerformanceChart data={performanceData} />
-          <UpcomingEvents />
-        </div>
-      </div>
+      <DashboardContent
+        user={user}
+        profile={profile}
+        rankInfo={rankInfo}
+        rankProgress={Number(rankProgress)}
+        performanceData={performanceData}
+        monthlySalesTotal={monthlySalesTotal}
+      />
     </AppLayout>
   );
 };
