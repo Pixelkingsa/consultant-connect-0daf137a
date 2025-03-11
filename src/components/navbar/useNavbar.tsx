@@ -68,12 +68,12 @@ export function useNavbar() {
   const getNavLinks = (): NavLink[] => {
     const navLinks = [
       { name: "Home", path: "/" },
-      { name: "Products", path: "/shop" },
-      { name: "Dashboard", path: "/dashboard" }
+      { name: "Products", path: "/user/shop" },
+      { name: "Dashboard", path: "/user/dashboard" }
     ];
 
     if (isAdmin) {
-      navLinks.push({ name: "Admin", path: "/admin-dashboard" });
+      navLinks.push({ name: "Admin", path: "/admin" });
     }
     
     return navLinks;

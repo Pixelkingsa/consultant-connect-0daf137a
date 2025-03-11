@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,10 +44,10 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           console.error("Error checking admin status:", profilesError);
           toast({
             title: "Error checking admin status",
-            description: "Could not verify admin privileges. Redirecting to admin dashboard.",
+            description: "Could not verify admin privileges. Redirecting to user dashboard.",
             variant: "destructive",
           });
-          navigate("/admin-dashboard");
+          navigate("/user");
           return;
         }
         
@@ -60,11 +61,11 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
             description: "You don't have permission to access the admin dashboard.",
             variant: "destructive",
           });
-          navigate("/dashboard");
+          navigate("/user");
         }
       } catch (error) {
         console.error("Error:", error);
-        navigate("/dashboard");
+        navigate("/user");
       } finally {
         setLoading(false);
       }

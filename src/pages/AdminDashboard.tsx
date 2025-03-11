@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsersRound, Package, Award, DollarSign } from "lucide-react";
-import AdminLayout from "@/components/layout/AdminLayout";
 import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
@@ -36,114 +35,112 @@ const AdminDashboard = () => {
   }, []);
   
   return (
-    <AdminLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Admin Dashboard</h1>
-          <p className="text-muted-foreground">Overview of your business operations and metrics</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <AdminStatCard 
-            title="Total Users" 
-            value={usersCount.toString()} 
-            icon={<UsersRound size={24} />}
-            color="bg-blue-500"
-          />
-          <AdminStatCard 
-            title="Products" 
-            value={productsCount.toString()} 
-            icon={<Package size={24} />}
-            color="bg-green-500"
-          />
-          <AdminStatCard 
-            title="Total Sales" 
-            value={`$${totalSales.toFixed(2)}`} 
-            icon={<DollarSign size={24} />}
-            color="bg-purple-500"
-          />
-          <AdminStatCard 
-            title="Rankings" 
-            value={`${productsCount > 0 ? "Active" : "Setup"}`} 
-            icon={<Award size={24} />}
-            color="bg-amber-500"
-          />
-        </div>
-        
-        <Tabs defaultValue="users" className="w-full">
-          <TabsList className="mb-8">
-            <TabsTrigger value="users">User Management</TabsTrigger>
-            <TabsTrigger value="products">Product Management</TabsTrigger>
-            <TabsTrigger value="sales">Sales Overview</TabsTrigger>
-            <TabsTrigger value="ranks">Rank Management</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="users" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>User Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Manage user accounts, adjust ranks, and view performance metrics.
-                </p>
-                <Button onClick={() => navigate("/admin/customers")}>
-                  View All Users
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="products" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Product Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Add, edit, and manage products in your catalog.
-                </p>
-                <Button onClick={() => navigate("/admin/products")}>
-                  Manage Products
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="sales" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Sales Overview</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Review sales data, commissions, and financial performance.
-                </p>
-                <Button onClick={() => navigate("/admin/orders")}>
-                  View Sales Reports
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="ranks" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Rank Management</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">
-                  Configure rank thresholds, commission rates, and promotion criteria.
-                </p>
-                <Button onClick={() => navigate("/admin/compensation")}>
-                  Manage Ranks
-                </Button>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        <p className="text-muted-foreground">Overview of your business operations and metrics</p>
       </div>
-    </AdminLayout>
+      
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <AdminStatCard 
+          title="Total Users" 
+          value={usersCount.toString()} 
+          icon={<UsersRound size={24} />}
+          color="bg-blue-500"
+        />
+        <AdminStatCard 
+          title="Products" 
+          value={productsCount.toString()} 
+          icon={<Package size={24} />}
+          color="bg-green-500"
+        />
+        <AdminStatCard 
+          title="Total Sales" 
+          value={`$${totalSales.toFixed(2)}`} 
+          icon={<DollarSign size={24} />}
+          color="bg-purple-500"
+        />
+        <AdminStatCard 
+          title="Rankings" 
+          value={`${productsCount > 0 ? "Active" : "Setup"}`} 
+          icon={<Award size={24} />}
+          color="bg-amber-500"
+        />
+      </div>
+      
+      <Tabs defaultValue="users" className="w-full">
+        <TabsList className="mb-8">
+          <TabsTrigger value="users">User Management</TabsTrigger>
+          <TabsTrigger value="products">Product Management</TabsTrigger>
+          <TabsTrigger value="sales">Sales Overview</TabsTrigger>
+          <TabsTrigger value="ranks">Rank Management</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="users" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>User Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Manage user accounts, adjust ranks, and view performance metrics.
+              </p>
+              <Button onClick={() => navigate("/admin/customers")}>
+                View All Users
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="products" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Product Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Add, edit, and manage products in your catalog.
+              </p>
+              <Button onClick={() => navigate("/admin/products")}>
+                Manage Products
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="sales" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Sales Overview</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Review sales data, commissions, and financial performance.
+              </p>
+              <Button onClick={() => navigate("/admin/orders")}>
+                View Sales Reports
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        <TabsContent value="ranks" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Rank Management</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-muted-foreground mb-4">
+                Configure rank thresholds, commission rates, and promotion criteria.
+              </p>
+              <Button onClick={() => navigate("/admin/compensation")}>
+                Manage Ranks
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 

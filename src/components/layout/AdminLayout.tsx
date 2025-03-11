@@ -1,11 +1,12 @@
 
 import { useState } from "react";
+import { Outlet } from "react-router-dom";
 import AdminAuthChecker from "./admin/AdminAuthChecker";
 import AdminSidebar from "./admin/AdminSidebar";
 import AdminMobileToggle from "./admin/AdminMobileToggle";
 import { getAdminNavItems } from "./admin/AdminNavItems";
 
-const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+const AdminLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const navItems = getAdminNavItems();
 
@@ -38,7 +39,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Main content */}
               <main className="flex-1 overflow-y-auto p-4">
-                {children}
+                <Outlet />
               </main>
             </div>
           </div>
