@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,7 +23,15 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           return;
         }
         
-        // Check if user is admin - first user in the system
+        // Check if user is admin - first user in the system OR specific email
+        if (user.email === "zonkebonke@gmail.com") {
+          // Grant admin access to this specific email
+          setIsAdmin(true);
+          setLoading(false);
+          return;
+        }
+
+        // Otherwise check if user is the first user in the system
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("*")
