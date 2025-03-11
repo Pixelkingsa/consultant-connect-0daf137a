@@ -8,7 +8,7 @@ import { DialogFooter } from "@/components/ui/dialog";
 import { ProductFormValues, productSchema, Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
 
-// Import our new components
+// Import our component modules
 import BasicProductFields from "./BasicProductFields";
 import DescriptionField from "./DescriptionField";
 import ImageUploadField from "./ImageUploadField";
