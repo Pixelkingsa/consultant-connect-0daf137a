@@ -19,6 +19,7 @@ import WithdrawalsManagement from "@/pages/admin/WithdrawalsManagement";
 import NotFound from "@/pages/NotFound";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { Loader } from "@/components/ui/loader";
 
 export const AppRoutes = () => {
   const { isAuthenticated, isAdmin } = useAuth();
@@ -27,7 +28,7 @@ export const AppRoutes = () => {
   if (isAuthenticated === null) {
     return (
       <div className="h-screen flex items-center justify-center">
-        <p>Loading...</p>
+        <Loader size="lg" text="Loading application..." />
       </div>
     );
   }

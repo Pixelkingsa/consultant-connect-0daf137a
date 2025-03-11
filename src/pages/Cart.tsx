@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Loader2, Trash2, MinusCircle, PlusCircle, ShoppingBag } from "lucide-react";
 import { CartItem } from "@/types/cart";
+import { Loader } from "@/components/ui/loader";
 
 const Cart = () => {
   const navigate = useNavigate();
@@ -167,9 +167,7 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <p className="text-lg text-muted-foreground">Loading your cart...</p>
-        </div>
+        <Loader size="lg" text="Loading your cart..." />
       </div>
     );
   }

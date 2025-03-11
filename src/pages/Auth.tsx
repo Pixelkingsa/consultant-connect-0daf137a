@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
@@ -8,6 +7,7 @@ import AuthForm from "@/components/auth/AuthForm";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Loader } from "@/components/ui/loader";
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -50,9 +50,7 @@ const Auth = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse text-center">
-          <p className="text-lg text-muted-foreground">Loading...</p>
-        </div>
+        <Loader size="lg" text="Loading..." />
       </div>
     );
   }
