@@ -1,8 +1,7 @@
 
 import { LogOut, HelpCircle } from "lucide-react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { NavItem } from "../types";
 
@@ -25,22 +24,25 @@ const UserSidebar = ({ sidebarLinks, onSignOut }: UserSidebarProps) => {
       
       <nav className="flex-1 px-4 py-2">
         <ul className="space-y-1">
-          {sidebarLinks.map((link) => (
-            <li key={link.path}>
-              <Link
-                to={link.path}
-                className={cn(
-                  "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                  location.pathname === link.path
-                    ? "bg-white/10 text-white font-medium"
-                    : "text-gray-300 hover:bg-white/5 hover:text-white"
-                )}
-              >
-                {link.icon}
-                {link.name}
-              </Link>
-            </li>
-          ))}
+          {sidebarLinks.map((link) => {
+            const Icon = link.icon;
+            return (
+              <li key={link.path}>
+                <Link
+                  to={link.path}
+                  className={cn(
+                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                    location.pathname === link.path
+                      ? "bg-white/10 text-white font-medium"
+                      : "text-gray-300 hover:bg-white/5 hover:text-white"
+                  )}
+                >
+                  <Icon className="h-5 w-5" />
+                  {link.name}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
       

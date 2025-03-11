@@ -1,5 +1,6 @@
+
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -14,16 +15,18 @@ import {
   Bell,
   LifeBuoy
 } from "lucide-react";
+import { NavItem } from "../types";
 
 export interface NavItem {
   name: string;
   href: string;
-  icon: React.ReactNode;
+  icon: React.ComponentType;
   isActive?: boolean;
 }
 
 export const useLayoutData = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { toast } = useToast();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
@@ -182,6 +185,21 @@ export const useLayoutData = () => {
     return items;
   };
 
+  // Generate sidebar links for the current location
+  const getSidebarLinks = (): NavItem[] => {
+    const currentPath = location.pathname;
+    const links = getNavItems(currentPath);
+    
+    // Add logout at the end
+    links.push({
+      name: "Logout",
+      href: "#",
+      icon: LogOut
+    });
+    
+    return links;
+  };
+
   return {
     user,
     profile,
@@ -193,6 +211,7 @@ export const useLayoutData = () => {
     handleSignOut,
     toggleMobileMenu,
     getNavItems,
-    getUserMenuItems
+    getUserMenuItems,
+    sidebarLinks: getSidebarLinks()
   };
 };

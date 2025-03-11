@@ -4,6 +4,7 @@ import UserSidebar from "./sidebar/UserSidebar";
 import MobileSidebar from "./sidebar/MobileSidebar";
 import MobileHeader from "./header/MobileHeader";
 import DesktopHeader from "./header/DesktopHeader";
+import { useLocation } from "react-router-dom";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -19,7 +20,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     loading, 
     handleSignOut, 
     toggleMobileMenu,
-    sidebarLinks 
+    sidebarLinks
   } = useLayoutData();
   
   if (loading) {

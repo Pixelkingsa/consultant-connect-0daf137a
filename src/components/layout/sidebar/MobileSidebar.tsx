@@ -28,23 +28,26 @@ const MobileSidebar = ({ isOpen, onOpenChange, sidebarLinks, onSignOut }: Mobile
         
         <nav className="flex-1 px-4 py-2">
           <ul className="space-y-1">
-            {sidebarLinks.map((link) => (
-              <li key={link.path}>
-                <Link
-                  to={link.path}
-                  className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                    location.pathname === link.path
-                      ? "bg-white/10 text-white font-medium"
-                      : "text-gray-300 hover:bg-white/5 hover:text-white"
-                  )}
-                  onClick={() => onOpenChange(false)}
-                >
-                  {link.icon}
-                  {link.name}
-                </Link>
-              </li>
-            ))}
+            {sidebarLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <li key={link.path}>
+                  <Link
+                    to={link.path}
+                    className={cn(
+                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
+                      location.pathname === link.path
+                        ? "bg-white/10 text-white font-medium"
+                        : "text-gray-300 hover:bg-white/5 hover:text-white"
+                    )}
+                    onClick={() => onOpenChange(false)}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {link.name}
+                  </Link>
+                </li>
+              );
+            })}
           </ul>
         </nav>
         
