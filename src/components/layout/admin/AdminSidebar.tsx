@@ -52,7 +52,7 @@ const AdminSidebar = ({ navItems, sidebarOpen }: AdminSidebarProps) => {
           <Button 
             variant="ghost" 
             className="w-full justify-start text-white hover:bg-slate-800"
-            onClick={() => navigate("/dashboard")}
+            onClick={() => navigate("/user-dashboard")}
           >
             <LogOut className="h-5 w-5" />
             <span className="ml-2">Exit Admin</span>

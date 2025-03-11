@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -5,7 +6,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
 import UserDashboard from "./pages/UserDashboard";
 import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
@@ -72,9 +72,9 @@ const App = () => {
             {!isAuthenticated && <Navbar />}
             
             <Routes>
-              <Route path="/" element={<Navigate to="/dashboard" replace />} />
+              <Route path="/" element={<Navigate to="/user-dashboard" replace />} />
               <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/dashboard" element={<Navigate to="/user-dashboard" replace />} />
               <Route path="/user-dashboard" element={<UserDashboard />} />
               <Route path="/shop" element={<Shop />} />
               <Route path="/profile" element={<Profile />} />

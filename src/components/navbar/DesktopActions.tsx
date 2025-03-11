@@ -35,7 +35,7 @@ const DesktopActions = ({ theme, toggleTheme, user, cartCount }: DesktopActionsP
               </span>
             )}
           </button>
-          <Link to="/dashboard">
+          <Link to="/user-dashboard">
             <Button size="sm">Dashboard</Button>
           </Link>
         </>
