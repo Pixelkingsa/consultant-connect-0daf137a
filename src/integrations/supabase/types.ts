@@ -197,7 +197,6 @@ export type Database = {
           image_url: string | null
           name: string
           price: number
-          stock_quantity: number
           subcategory: string | null
           updated_at: string
           vp_points: number
@@ -210,7 +209,6 @@ export type Database = {
           image_url?: string | null
           name: string
           price?: number
-          stock_quantity?: number
           subcategory?: string | null
           updated_at?: string
           vp_points?: number
@@ -223,7 +221,6 @@ export type Database = {
           image_url?: string | null
           name?: string
           price?: number
-          stock_quantity?: number
           subcategory?: string | null
           updated_at?: string
           vp_points?: number
@@ -332,6 +329,24 @@ export type Database = {
         }
         Relationships: []
       }
+      roles: {
+        Row: {
+          created_at: string
+          id: number
+          role_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          role_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          role_name?: string | null
+        }
+        Relationships: []
+      }
       sales: {
         Row: {
           amount: number
@@ -419,6 +434,35 @@ export type Database = {
             columns: ["user_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: number
+          role_id: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          role_id?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          role_id?: number | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_role_id_fkey"
+            columns: ["role_id"]
+            isOneToOne: false
+            referencedRelation: "roles"
             referencedColumns: ["id"]
           },
         ]
