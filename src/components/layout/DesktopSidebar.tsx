@@ -10,7 +10,7 @@ interface DesktopSidebarProps {
 
 export const DesktopSidebar = ({ isAdmin, handleSignOut }: DesktopSidebarProps) => {
   return (
-    <aside className="hidden md:flex flex-col w-64 bg-black text-white">
+    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 flex-col w-64 bg-black text-white h-screen overflow-y-auto">
       <div className="p-6">
         <div className="flex items-center">
           <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>

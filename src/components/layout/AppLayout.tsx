@@ -32,7 +32,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         />
         
         {/* Main content */}
-        <main className="flex-1 overflow-auto bg-gray-50">
+        <main className="flex-1 overflow-auto bg-gray-50 md:ml-64">
           {/* Mobile header */}
           <MobileHeader 
             profile={profile}

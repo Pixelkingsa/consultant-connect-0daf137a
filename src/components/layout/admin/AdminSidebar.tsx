@@ -17,7 +17,7 @@ const AdminSidebar = ({ navItems, sidebarOpen }: AdminSidebarProps) => {
   return (
     <div
       className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 transform bg-slate-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto", 
+        "fixed inset-y-0 left-0 z-40 w-64 h-screen overflow-y-auto transform bg-slate-900 text-white transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-auto", 
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}
     >
