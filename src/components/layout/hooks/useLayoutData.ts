@@ -65,6 +65,8 @@ export const useLayoutData = () => {
         console.error("Error counting cart items:", cartError);
         setCartCount(0);
       }
+      
+      setLoading(false);
     };
     
     checkUser();
@@ -89,7 +91,7 @@ export const useLayoutData = () => {
       { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
       { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
       { name: "News", path: "/news", icon: <Bell className="h-5 w-5" /> },
-      { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
+      { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> }
     ];
     
     if (isAdmin) {
@@ -111,6 +113,6 @@ export const useLayoutData = () => {
     loading,
     handleSignOut,
     toggleMobileMenu,
-    sidebarLinks: getSidebarLinks(),
+    sidebarLinks: getSidebarLinks()
   };
 };
