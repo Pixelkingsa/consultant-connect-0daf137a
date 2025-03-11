@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { 
+import { LucideIcon, 
   LayoutDashboard, 
   Home, 
   ShoppingBag, 
@@ -18,7 +19,7 @@ import {
 export interface NavItem {
   name: string;
   href: string;
-  icon: React.ReactNode;
+  icon: LucideIcon;
   isActive?: boolean;
 }
 

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,7 +13,6 @@ import {
   LayoutDashboard,
   Users,
   Bell,
-  LifeBuoy,
   Package
 } from "lucide-react";
 import { NavItem } from "../types";
