@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
