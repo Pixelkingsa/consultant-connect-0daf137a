@@ -22,6 +22,10 @@ const DashboardContent = ({
   performanceData,
   monthlySalesTotal
 }: DashboardContentProps) => {
+  // Default values if data is missing
+  const userName = profile?.full_name || user?.email || "User";
+  const userRank = rankInfo?.name || "Starter";
+  
   return (
     <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
       {/* Dashboard Header */}
