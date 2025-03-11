@@ -1,67 +1,89 @@
-
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/layout/AppLayout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
-import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
-import { Loader2, Edit, Trash2, Search, Plus, ArrowLeft } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
+import { Plus, Pencil, Trash2 } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-interface Product {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  vp_points: number;
-  category: string;
-  subcategory: string | null;
-  image_url: string | null;
-  stock_quantity: number;
-  created_at: string;
-}
+// Schema for product validation
+const productSchema = z.object({
+  name: z.string().min(1, "Product name is required"),
+  description: z.string().optional(),
+  price: z.coerce.number().min(0, "Price must be a positive number"),
+  category: z.string().default("Uncategorized"),
+  vp_points: z.coerce.number().min(0, "VP points must be a positive number"),
+  image_url: z.string().optional(),
+  stock_quantity: z.coerce.number().min(0, "Stock quantity must be a positive number")
+});
 
-const AdminProducts = () => {
-  const navigate = useNavigate();
+type ProductFormValues = z.infer<typeof productSchema>;
+
+const ProductsManagement = () => {
   const { toast } = useToast();
-  const [products, setProducts] = useState<Product[]>([]);
+  const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showAddEdit, setShowAddEdit] = useState(false);
-  const [currentProduct, setCurrentProduct] = useState<Product | null>(null);
-  const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    price: "",
-    vp_points: "",
-    category: "",
-    subcategory: "",
-    stock_quantity: "",
-    image_url: ""
+  const [editingProduct, setEditingProduct] = useState<null | any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  
+  const form = useForm<ProductFormValues>({
+    resolver: zodResolver(productSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      price: 0,
+      category: "Uncategorized",
+      vp_points: 0,
+      image_url: "",
+      stock_quantity: 0
+    }
   });
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
-  const [uploadLoading, setUploadLoading] = useState(false);
 
-  // Fetch products
+  // Fetch products from Supabase
   const fetchProducts = async () => {
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from("products")
         .select("*")
         .order("created_at", { ascending: false });
-        
+      
       if (error) throw error;
       setProducts(data || []);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error fetching products:", error);
       toast({
         title: "Error",
-        description: "Failed to load products. " + error.message,
+        description: "Failed to load products. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -71,469 +93,324 @@ const AdminProducts = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [toast]);
+  }, []);
 
-  // Filter products based on search term
-  const filteredProducts = products.filter(product => 
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  // Handle image upload
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setUploadedImage(e.target.files[0]);
-    }
-  };
-
-  // Upload image to Supabase Storage
-  const uploadImage = async (file: File): Promise<string | null> => {
-    setUploadLoading(true);
-    try {
-      const fileName = `${Date.now()}_${file.name}`;
-      const { data, error } = await supabase
-        .storage
-        .from('products')
-        .upload(fileName, file);
-        
-      if (error) throw error;
-      
-      // Get public URL
-      const { data: urlData } = supabase
-        .storage
-        .from('products')
-        .getPublicUrl(fileName);
-        
-      return urlData.publicUrl;
-    } catch (error) {
-      console.error("Error uploading image:", error);
-      return null;
-    } finally {
-      setUploadLoading(false);
-    }
-  };
-
-  // Add/Edit Product
-  const handleSaveProduct = async () => {
-    try {
-      if (!formData.name || !formData.price) {
-        toast({
-          title: "Missing Information",
-          description: "Product name and price are required.",
-          variant: "destructive",
+  // Reset form when dialog opens/closes or when editing product changes
+  useEffect(() => {
+    if (isDialogOpen) {
+      if (editingProduct) {
+        form.reset({
+          name: editingProduct.name || "",
+          description: editingProduct.description || "",
+          price: editingProduct.price || 0,
+          category: editingProduct.category || "Uncategorized",
+          vp_points: editingProduct.vp_points || 0,
+          image_url: editingProduct.image_url || "",
+          stock_quantity: editingProduct.stock_quantity || 0
         });
-        return;
+      } else {
+        form.reset({
+          name: "",
+          description: "",
+          price: 0,
+          category: "Uncategorized",
+          vp_points: 0,
+          image_url: "",
+          stock_quantity: 0
+        });
       }
-      
-      let imageUrl = formData.image_url;
-      
-      // Upload image if a new one is selected
-      if (uploadedImage) {
-        const uploadedUrl = await uploadImage(uploadedImage);
-        if (uploadedUrl) {
-          imageUrl = uploadedUrl;
-        }
-      }
-      
-      const productData = {
-        name: formData.name,
-        description: formData.description,
-        price: parseFloat(formData.price),
-        vp_points: parseInt(formData.vp_points) || 0,
-        category: formData.category || "Uncategorized",
-        subcategory: formData.subcategory || null,
-        stock_quantity: parseInt(formData.stock_quantity) || 0,
-        image_url: imageUrl
-      };
-      
-      if (currentProduct) {
+    }
+  }, [isDialogOpen, editingProduct, form]);
+
+  // Handle form submission
+  const onSubmit = async (values: ProductFormValues) => {
+    try {
+      if (editingProduct) {
         // Update existing product
         const { error } = await supabase
-          .from('products')
-          .update(productData)
-          .eq('id', currentProduct.id);
-          
+          .from("products")
+          .update({
+            name: values.name,
+            description: values.description,
+            price: values.price,
+            category: values.category,
+            vp_points: values.vp_points,
+            image_url: values.image_url,
+            stock_quantity: values.stock_quantity
+          })
+          .eq("id", editingProduct.id);
+        
         if (error) throw error;
         
         toast({
-          title: "Product Updated",
-          description: "The product has been updated successfully."
+          title: "Success",
+          description: "Product updated successfully",
         });
       } else {
         // Create new product
         const { error } = await supabase
-          .from('products')
-          .insert([productData]);
-          
+          .from("products")
+          .insert([{
+            name: values.name,
+            description: values.description,
+            price: values.price,
+            category: values.category,
+            vp_points: values.vp_points,
+            image_url: values.image_url,
+            stock_quantity: values.stock_quantity
+          }]);
+        
         if (error) throw error;
         
         toast({
-          title: "Product Added",
-          description: "The new product has been added successfully."
+          title: "Success",
+          description: "Product created successfully",
         });
       }
       
-      // Reset form and refresh products
-      setShowAddEdit(false);
-      setCurrentProduct(null);
-      setFormData({
-        name: "",
-        description: "",
-        price: "",
-        vp_points: "",
-        category: "",
-        subcategory: "",
-        stock_quantity: "",
-        image_url: ""
-      });
-      setUploadedImage(null);
+      // Close dialog and refresh products
+      setIsDialogOpen(false);
+      setEditingProduct(null);
       fetchProducts();
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error saving product:", error);
       toast({
         title: "Error",
-        description: "Failed to save product. " + error.message,
+        description: "Failed to save product. Please try again.",
         variant: "destructive",
       });
     }
   };
 
-  // Edit Product
-  const handleEditProduct = (product: Product) => {
-    setCurrentProduct(product);
-    setFormData({
-      name: product.name,
-      description: product.description || "",
-      price: product.price.toString(),
-      vp_points: product.vp_points.toString(),
-      category: product.category || "",
-      subcategory: product.subcategory || "",
-      stock_quantity: product.stock_quantity.toString(),
-      image_url: product.image_url || ""
-    });
-    setShowAddEdit(true);
-  };
-
-  // Delete Product
-  const handleDeleteProduct = async (id: string) => {
+  // Handle product deletion
+  const handleDeleteProduct = async (productId: string) => {
+    if (!confirm("Are you sure you want to delete this product?")) return;
+    
     try {
       const { error } = await supabase
-        .from('products')
+        .from("products")
         .delete()
-        .eq('id', id);
-        
+        .eq("id", productId);
+      
       if (error) throw error;
       
       toast({
-        title: "Product Deleted",
-        description: "The product has been deleted successfully."
+        title: "Success",
+        description: "Product deleted successfully",
       });
       
-      // Refresh products
       fetchProducts();
-      
-    } catch (error: any) {
+    } catch (error) {
       console.error("Error deleting product:", error);
       toast({
         title: "Error",
-        description: "Failed to delete product. " + error.message,
+        description: "Failed to delete product. Please try again.",
         variant: "destructive",
       });
     }
   };
 
+  // Open dialog for creating/editing a product
+  const openProductDialog = (product: any = null) => {
+    setEditingProduct(product);
+    setIsDialogOpen(true);
+  };
+
   return (
-    <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="icon" onClick={() => navigate("/admin-dashboard")}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            <h1 className="text-3xl font-bold">Product Management</h1>
+    <AdminLayout>
+      <div className="space-y-8">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold">Products Management</h1>
+            <p className="text-muted-foreground">Manage your product catalog</p>
           </div>
-          <div className="flex w-full md:w-auto gap-2">
-            <div className="relative w-full md:w-64">
-              <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search products..."
-                className="pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-            <Button onClick={() => {
-              setCurrentProduct(null);
-              setFormData({
-                name: "",
-                description: "",
-                price: "",
-                vp_points: "",
-                category: "",
-                subcategory: "",
-                stock_quantity: "",
-                image_url: ""
-              });
-              setUploadedImage(null);
-              setShowAddEdit(true);
-            }}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </div>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button onClick={() => openProductDialog()}>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Product
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[600px]">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </DialogTitle>
+                <DialogDescription>
+                  Fill in the details for your product
+                </DialogDescription>
+              </DialogHeader>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Product Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Product name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="price"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Price ($)</FormLabel>
+                          <FormControl>
+                            <Input type="number" step="0.01" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="vp_points"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>VP Points</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormField
+                      control={form.control}
+                      name="category"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Category</FormLabel>
+                          <FormControl>
+                            <Input {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="stock_quantity"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Stock Quantity</FormLabel>
+                          <FormControl>
+                            <Input type="number" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="image_url"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Image URL</FormLabel>
+                        <FormControl>
+                          <Input placeholder="https://example.com/image.jpg" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Description</FormLabel>
+                        <FormControl>
+                          <textarea
+                            className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-y"
+                            placeholder="Product description"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <DialogFooter className="mt-6">
+                    <Button type="submit">Save Product</Button>
+                  </DialogFooter>
+                </form>
+              </Form>
+            </DialogContent>
+          </Dialog>
         </div>
-        
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : (
-              <Table>
-                <TableHeader>
+
+        {loading ? (
+          <div className="flex justify-center">
+            <div className="animate-pulse">Loading products...</div>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>VP Points</TableHead>
+                  <TableHead>Stock</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {products.length === 0 ? (
                   <TableRow>
-                    <TableHead>Image</TableHead>
-                    <TableHead>Product Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>VP Points</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+                    <TableCell colSpan={6} className="text-center py-8">
+                      No products found. Add one to get started!
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={7} className="text-center py-10 text-muted-foreground">
-                        {searchTerm ? "No products found matching your search." : "No products available. Add your first product!"}
+                ) : (
+                  products.map((product) => (
+                    <TableRow key={product.id}>
+                      <TableCell className="font-medium">{product.name}</TableCell>
+                      <TableCell>{product.category}</TableCell>
+                      <TableCell>${product.price.toFixed(2)}</TableCell>
+                      <TableCell>{product.vp_points}</TableCell>
+                      <TableCell>{product.stock_quantity}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => openProductDialog(product)}
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div className="h-12 w-12 rounded-md overflow-hidden">
-                            <img 
-                              src={product.image_url || "/placeholder.svg"} 
-                              alt={product.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{product.name}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{product.category}</Badge>
-                          {product.subcategory && (
-                            <Badge variant="outline" className="ml-2">{product.subcategory}</Badge>
-                          )}
-                        </TableCell>
-                        <TableCell>${product.price.toFixed(2)}</TableCell>
-                        <TableCell>{product.vp_points}</TableCell>
-                        <TableCell>
-                          <Badge 
-                            variant={product.stock_quantity > 0 ? "default" : "destructive"}
-                          >
-                            {product.stock_quantity > 0 ? `In Stock (${product.stock_quantity})` : "Out of Stock"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button variant="outline" size="icon" onClick={() => handleEditProduct(product)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Dialog>
-                              <DialogTrigger asChild>
-                                <Button variant="outline" size="icon" className="text-destructive">
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </DialogTrigger>
-                              <DialogContent>
-                                <DialogHeader>
-                                  <DialogTitle>Delete Product</DialogTitle>
-                                  <DialogDescription>
-                                    Are you sure you want to delete "{product.name}"? This action cannot be undone.
-                                  </DialogDescription>
-                                </DialogHeader>
-                                <DialogFooter className="flex gap-2 justify-end">
-                                  <DialogClose asChild>
-                                    <Button variant="outline">Cancel</Button>
-                                  </DialogClose>
-                                  <Button 
-                                    variant="destructive" 
-                                    onClick={() => handleDeleteProduct(product.id)}
-                                  >
-                                    Delete
-                                  </Button>
-                                </DialogFooter>
-                              </DialogContent>
-                            </Dialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            )}
-          </CardContent>
-        </Card>
-        
-        {/* Add/Edit Product Dialog */}
-        <Dialog open={showAddEdit} onOpenChange={setShowAddEdit}>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>{currentProduct ? "Edit Product" : "Add New Product"}</DialogTitle>
-              <DialogDescription>
-                {currentProduct 
-                  ? "Update the product details below." 
-                  : "Fill in the details for the new product."}
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Product Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="price">Price ($) *</Label>
-                <Input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={formData.price}
-                  onChange={handleInputChange}
-                  required
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="vp_points">VP Points</Label>
-                <Input
-                  id="vp_points"
-                  name="vp_points"
-                  type="number"
-                  min="0"
-                  value={formData.vp_points}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="stock_quantity">Stock Quantity</Label>
-                <Input
-                  id="stock_quantity"
-                  name="stock_quantity"
-                  type="number"
-                  min="0"
-                  value={formData.stock_quantity}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
-                <Input
-                  id="category"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="subcategory">Subcategory</Label>
-                <Input
-                  id="subcategory"
-                  name="subcategory"
-                  value={formData.subcategory}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="description">Description</Label>
-                <Input
-                  id="description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </div>
-              
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="image">Product Image</Label>
-                <div className="flex items-start gap-4">
-                  <div className="h-24 w-24 rounded-md overflow-hidden border bg-gray-50 flex items-center justify-center">
-                    {uploadedImage ? (
-                      <img 
-                        src={URL.createObjectURL(uploadedImage)} 
-                        alt="Preview" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : formData.image_url ? (
-                      <img 
-                        src={formData.image_url} 
-                        alt="Current" 
-                        className="h-full w-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-muted-foreground text-sm">No image</span>
-                    )}
-                  </div>
-                  <div className="flex-1">
-                    <Input
-                      id="image"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                    />
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Recommended: 800x800px JPG, PNG or WebP
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button 
-                onClick={handleSaveProduct}
-                disabled={uploadLoading}
-              >
-                {uploadLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Uploading...
-                  </>
-                ) : currentProduct ? "Update Product" : "Add Product"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        )}
       </div>
-    </AppLayout>
+    </AdminLayout>
   );
 };
 
-export default AdminProducts;
+export default ProductsManagement;

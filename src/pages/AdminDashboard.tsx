@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UsersRound, Package, Award, DollarSign } from "lucide-react";
 import AdminLayout from "@/components/layout/AdminLayout";
+import { useNavigate } from "react-router-dom";
 
 const AdminDashboard = () => {
   const [usersCount, setUsersCount] = useState(0);
   const [productsCount, setProductsCount] = useState(0);
   const [totalSales, setTotalSales] = useState(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchDashboardStats = async () => {
@@ -85,7 +87,7 @@ const AdminDashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Manage user accounts, adjust ranks, and view performance metrics.
                 </p>
-                <Button href="/admin/customers">
+                <Button onClick={() => navigate("/admin/customers")}>
                   View All Users
                 </Button>
               </CardContent>
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Add, edit, and manage products in your catalog.
                 </p>
-                <Button href="/admin/products">
+                <Button onClick={() => navigate("/admin/products")}>
                   Manage Products
                 </Button>
               </CardContent>
@@ -117,7 +119,7 @@ const AdminDashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Review sales data, commissions, and financial performance.
                 </p>
-                <Button href="/admin/orders">
+                <Button onClick={() => navigate("/admin/orders")}>
                   View Sales Reports
                 </Button>
               </CardContent>
@@ -133,7 +135,7 @@ const AdminDashboard = () => {
                 <p className="text-muted-foreground mb-4">
                   Configure rank thresholds, commission rates, and promotion criteria.
                 </p>
-                <Button href="/admin/compensation">
+                <Button onClick={() => navigate("/admin/compensation")}>
                   Manage Ranks
                 </Button>
               </CardContent>

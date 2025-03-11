@@ -130,7 +130,15 @@ const ProductsManagement = () => {
         // Update existing product
         const { error } = await supabase
           .from("products")
-          .update(values)
+          .update({
+            name: values.name,
+            description: values.description,
+            price: values.price,
+            category: values.category,
+            vp_points: values.vp_points,
+            image_url: values.image_url,
+            stock_quantity: values.stock_quantity
+          })
           .eq("id", editingProduct.id);
         
         if (error) throw error;
@@ -143,7 +151,15 @@ const ProductsManagement = () => {
         // Create new product
         const { error } = await supabase
           .from("products")
-          .insert([values]);
+          .insert([{
+            name: values.name,
+            description: values.description,
+            price: values.price,
+            category: values.category,
+            vp_points: values.vp_points,
+            image_url: values.image_url,
+            stock_quantity: values.stock_quantity
+          }]);
         
         if (error) throw error;
         

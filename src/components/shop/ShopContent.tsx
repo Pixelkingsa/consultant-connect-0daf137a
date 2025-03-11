@@ -40,7 +40,13 @@ const ShopContent = () => {
           
         if (error) throw error;
         
-        setProducts(data || []);
+        // Map the data to ensure all products have stock_quantity property
+        const productsWithStock = data?.map(product => ({
+          ...product,
+          stock_quantity: product.stock_quantity || 0 // Default to 0 if not present
+        })) || [];
+        
+        setProducts(productsWithStock);
         
         // Extract unique categories and subcategories
         const uniqueCategories = Array.from(

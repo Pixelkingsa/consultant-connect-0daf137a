@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -31,7 +30,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart } from "@/components/ui/chart";
+import { BarChart } from "@/components/ui/custom-chart";
 import { Plus, Pencil, ChevronUp, ChevronDown } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -119,7 +118,12 @@ const CompensationManagement = () => {
         // Update existing rank
         const { error } = await supabase
           .from("ranks")
-          .update(values)
+          .update({
+            name: values.name,
+            commission_rate: values.commission_rate,
+            threshold_pv: values.threshold_pv,
+            threshold_gv: values.threshold_gv
+          })
           .eq("id", editingRank.id);
         
         if (error) throw error;
@@ -132,7 +136,12 @@ const CompensationManagement = () => {
         // Create new rank
         const { error } = await supabase
           .from("ranks")
-          .insert([values]);
+          .insert([{
+            name: values.name,
+            commission_rate: values.commission_rate,
+            threshold_pv: values.threshold_pv,
+            threshold_gv: values.threshold_gv
+          }]);
         
         if (error) throw error;
         
