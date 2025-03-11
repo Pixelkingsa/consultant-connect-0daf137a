@@ -16,7 +16,6 @@ export const DesktopSidebar = ({ isAdmin, handleSignOut }: DesktopSidebarProps) 
       <div className="p-6">
         <div className="flex items-center">
           <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
-          <span className="text-xs ml-1 mt-1 text-gray-400">YOUR LASTING BEAUTY</span>
         </div>
       </div>
       
