@@ -1,3 +1,4 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -43,8 +44,8 @@ export const AppRoutes = () => {
       } else {
         // Regular user should not access admin routes
         if (location.pathname.startsWith("/admin")) {
-          console.log("Regular user detected on admin route, redirecting to dashboard");
-          navigate("/dashboard", { replace: true });
+          console.log("Regular user detected on admin route, redirecting to user dashboard");
+          navigate("/user-dashboard", { replace: true });
         }
       }
     }
@@ -93,7 +94,7 @@ export const AppRoutes = () => {
           isAuthenticated 
             ? (isAdmin 
                 ? <Navigate to="/admin-dashboard" replace /> 
-                : <Dashboard />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         
@@ -119,42 +120,42 @@ export const AppRoutes = () => {
           isAuthenticated 
             ? (isAdmin 
                 ? <AdminDashboard /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/products" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <ProductsManagement /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/orders" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <OrdersManagement /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/customers" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <CustomersManagement /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/compensation" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <CompensationManagement /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/withdrawals" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <WithdrawalsManagement /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         

@@ -17,7 +17,6 @@ export const useSidebarLinks = (isAdmin: boolean) => {
   useEffect(() => {
     const links = [
       { name: "User Dashboard", path: "/user-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-      { name: "Home", path: "/dashboard", icon: <Home className="h-5 w-5" /> },
       { name: "Shop", path: "/shop", icon: <Package className="h-5 w-5" /> },
       { name: "Orders", path: "/orders", icon: <CreditCard className="h-5 w-5" /> },
       { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
