@@ -54,10 +54,18 @@ const CompensationManagement = () => {
 
   const onSubmit = async (values: RankFormValues) => {
     try {
+      // Ensure all required fields are present with their correct types
+      const rankData = {
+        name: values.name,
+        commission_rate: Number(values.commission_rate),
+        threshold_pv: Number(values.threshold_pv),
+        threshold_gv: Number(values.threshold_gv)
+      };
+
       if (editingRank) {
         const { error } = await supabase
           .from("ranks")
-          .update(values)
+          .update(rankData)
           .eq("id", editingRank.id);
         
         if (error) throw error;
@@ -69,7 +77,7 @@ const CompensationManagement = () => {
       } else {
         const { error } = await supabase
           .from("ranks")
-          .insert([values]);
+          .insert([rankData]);
         
         if (error) throw error;
         

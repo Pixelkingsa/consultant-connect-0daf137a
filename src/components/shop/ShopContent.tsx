@@ -41,20 +41,20 @@ const ShopContent = () => {
         if (error) throw error;
         
         // Map the data to ensure all products have stock_quantity property
-        const productsWithStock = data?.map(product => ({
+        const productsWithStock = (data || []).map(product => ({
           ...product,
-          stock_quantity: product.stock_quantity || 0 // Default to 0 if not present
-        })) || [];
+          stock_quantity: product.stock_quantity || 0
+        }));
         
         setProducts(productsWithStock);
         
         // Extract unique categories and subcategories
         const uniqueCategories = Array.from(
-          new Set(data?.map(product => product.category) || [])
+          new Set(productsWithStock.map(product => product.category))
         ).filter(Boolean);
         
         const uniqueSubcategories = Array.from(
-          new Set(data?.map(product => product.subcategory) || [])
+          new Set(productsWithStock.map(product => product.subcategory))
         ).filter(Boolean) as string[];
         
         setCategories(uniqueCategories as string[]);
