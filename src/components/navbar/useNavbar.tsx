@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -66,6 +67,7 @@ export function useNavbar() {
   
   const getNavLinks = (): NavLink[] => {
     const navLinks = [
+      { name: "Home", path: "/" },
       { name: "Products", path: "/shop" },
       { name: "Dashboard", path: "/dashboard" }
     ];

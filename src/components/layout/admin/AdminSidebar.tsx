@@ -23,13 +23,7 @@ const AdminSidebar = ({ navItems, sidebarOpen }: AdminSidebarProps) => {
     >
       <div className="flex flex-col h-full">
         <div className="p-6">
-          <div className="flex items-center">
-            <img 
-              src="/lovable-uploads/950bf148-002f-4867-9bb3-8a24e2e962e1.png" 
-              alt="Vamna Logo" 
-              className="h-10 w-auto" 
-            />
-          </div>
+          <h2 className="text-xl font-bold">Admin Panel</h2>
         </div>
 
         <Separator className="bg-slate-700" />

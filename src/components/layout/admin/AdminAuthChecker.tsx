@@ -24,15 +24,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           return;
         }
         
-        // Check if user is admin - first user in the system OR specific email
-        if (user.email === "zonkebonke@gmail.com") {
-          // Grant admin access to this specific email
-          setIsAdmin(true);
-          setLoading(false);
-          return;
-        }
-
-        // Otherwise check if user is the first user in the system
+        // Check if user is admin - first user in the system
         const { data: profiles, error: profilesError } = await supabase
           .from("profiles")
           .select("*")
@@ -43,10 +35,10 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           console.error("Error checking admin status:", profilesError);
           toast({
             title: "Error checking admin status",
-            description: "Could not verify admin privileges. Redirecting to admin dashboard.",
+            description: "Could not verify admin privileges. Redirecting to dashboard.",
             variant: "destructive",
           });
-          navigate("/admin-dashboard");
+          navigate("/dashboard");
           return;
         }
         

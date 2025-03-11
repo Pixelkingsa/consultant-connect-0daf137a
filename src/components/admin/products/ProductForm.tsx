@@ -1,17 +1,19 @@
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { 
+  Form, 
+  FormControl, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ProductFormValues, productSchema, Product } from "@/types/product";
-import { supabase } from "@/integrations/supabase/client";
-
-// Import our component modules
-import BasicProductFields from "./BasicProductFields";
-import DescriptionField from "./DescriptionField";
-import ImageUploadField from "./ImageUploadField";
 
 interface ProductFormProps {
   editingProduct: Product | null;
@@ -19,9 +21,6 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
-
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -45,12 +44,6 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         vp_points: editingProduct.vp_points || 0,
         image_url: editingProduct.image_url || ""
       });
-      
-      if (editingProduct.image_url) {
-        setImagePreview(editingProduct.image_url);
-      } else {
-        setImagePreview(null);
-      }
     } else {
       form.reset({
         name: "",
@@ -60,68 +53,98 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         vp_points: 0,
         image_url: ""
       });
-      setImagePreview(null);
     }
   }, [editingProduct, form]);
 
-  const handleSubmit = async (values: ProductFormValues) => {
-    setIsUploading(true);
-    try {
-      // Check if there's a file to upload
-      if (values.image instanceof File) {
-        const file = values.image;
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
-        const filePath = `product-images/${fileName}`;
-        
-        // Upload the file to Supabase Storage
-        const { error: uploadError } = await supabase.storage
-          .from('products')
-          .upload(filePath, file);
-          
-        if (uploadError) {
-          throw uploadError;
-        }
-        
-        // Get the public URL
-        const { data } = supabase.storage
-          .from('products')
-          .getPublicUrl(filePath);
-          
-        // Set the image_url to the uploaded file's public URL
-        values.image_url = data.publicUrl;
-      }
-      
-      // Remove the file from values before submitting (it's already uploaded)
-      const { image, ...submitValues } = values;
-      
-      // Call the parent's onSubmit with the processed values
-      await onSubmit(submitValues as ProductFormValues);
-    } catch (error) {
-      console.error("Error uploading image:", error);
-    } finally {
-      setIsUploading(false);
-    }
-  };
-
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <BasicProductFields form={form} />
-        
-        <DescriptionField form={form} />
-        
-        <ImageUploadField 
-          form={form} 
-          imagePreview={imagePreview}
-          setImagePreview={setImagePreview}
-          editingProduct={editingProduct}
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Product Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Product name" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
-        
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="price"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Price ($)</FormLabel>
+                <FormControl>
+                  <Input type="number" step="0.01" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="vp_points"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>VP Points</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="image_url"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Image URL</FormLabel>
+              <FormControl>
+                <Input placeholder="https://example.com/image.jpg" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <textarea
+                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-y"
+                  placeholder="Product description"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <DialogFooter className="mt-6">
-          <Button type="submit" disabled={isUploading}>
-            {isUploading ? "Uploading..." : "Save Product"}
-          </Button>
+          <Button type="submit">Save Product</Button>
         </DialogFooter>
       </form>
     </Form>
