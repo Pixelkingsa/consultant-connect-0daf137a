@@ -1,30 +1,13 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate, Link, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
-import {
-  Bell,
-  ChevronDown,
-  CreditCard,
-  HelpCircle,
-  Home,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Package,
-  Search,
-  Settings,
-  ShoppingCart,
-  User,
-  Users
-} from "lucide-react";
-import { Input } from "@/components/ui/input";
+import DesktopSidebar from "./sidebar/DesktopSidebar";
+import MobileSidebar from "./sidebar/MobileSidebar";
+import MobileHeader from "./header/MobileHeader";
+import DesktopHeader from "./header/DesktopHeader";
+import { useSidebarLinks } from "./hooks/useSidebarLinks";
+import { Loader } from "@/components/ui/loader";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -32,12 +15,14 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
-  const location = useLocation();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+  
+  const sidebarLinks = useSidebarLinks(isAdmin);
   
   useEffect(() => {
     const checkUser = async () => {
@@ -79,6 +64,8 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         console.error("Error counting cart items:", cartError);
         setCartCount(0);
       }
+      
+      setLoading(false);
     };
     
     checkUser();
@@ -89,228 +76,49 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     navigate("/auth");
   };
   
-  const sidebarLinks = [
-    { name: "User Dashboard", path: "/user-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Home", path: "/dashboard", icon: <Home className="h-5 w-5" /> },
-    { name: "Shop", path: "/shop", icon: <Package className="h-5 w-5" /> },
-    { name: "Orders", path: "/orders", icon: <CreditCard className="h-5 w-5" /> },
-    { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
-    { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
-    { name: "News", path: "/news", icon: <Bell className="h-5 w-5" /> },
-    { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
-  ];
-  
-  if (isAdmin) {
-    sidebarLinks.push(
-      { name: "Admin Dashboard", path: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader size="lg" text="Loading..." />
+      </div>
     );
   }
   
   return (
     <div className="min-h-screen flex flex-col">
       <div className="flex flex-1">
-        {/* Sidebar for desktop */}
-        <aside className="hidden md:flex flex-col w-64 bg-black text-white">
-          <div className="p-6">
-            <div className="flex items-center">
-              <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
-              <span className="text-xs ml-1 mt-1 text-gray-400">YOUR LASTING BEAUTY</span>
-            </div>
-          </div>
-          
-          <nav className="flex-1 px-4 py-2">
-            <ul className="space-y-1">
-              {sidebarLinks.map((link) => (
-                <li key={link.path}>
-                  <Link
-                    to={link.path}
-                    className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                      location.pathname === link.path
-                        ? "bg-white/10 text-white font-medium"
-                        : "text-gray-300 hover:bg-white/5 hover:text-white"
-                    )}
-                  >
-                    {link.icon}
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </nav>
-          
-          <div className="p-4 mt-auto">
-            <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4 mr-2" />
-              Logout
-            </Button>
-          </div>
-          
-          <div className="p-4 text-gray-400 text-xs">
-            <div className="flex items-center gap-2">
-              <HelpCircle className="h-4 w-4" />
-              <span>Help & Support</span>
-            </div>
-          </div>
-        </aside>
+        {/* Desktop Sidebar */}
+        <DesktopSidebar 
+          sidebarLinks={sidebarLinks} 
+          handleSignOut={handleSignOut} 
+        />
         
-        {/* Mobile sidebar */}
-        <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-          <SheetContent side="left" className="w-64 p-0 bg-black text-white">
-            <div className="p-6">
-              <div className="flex items-center">
-                <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
-                <span className="text-xs ml-1 mt-1 text-gray-400">YOUR LASTING BEAUTY</span>
-              </div>
-            </div>
-            
-            <nav className="flex-1 px-4 py-2">
-              <ul className="space-y-1">
-                {sidebarLinks.map((link) => (
-                  <li key={link.path}>
-                    <Link
-                      to={link.path}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors",
-                        location.pathname === link.path
-                          ? "bg-white/10 text-white font-medium"
-                          : "text-gray-300 hover:bg-white/5 hover:text-white"
-                      )}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      {link.icon}
-                      {link.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
-            
-            <div className="p-4 mt-auto">
-              <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5" onClick={handleSignOut}>
-                <LogOut className="h-4 w-4 mr-2" />
-                Logout
-              </Button>
-            </div>
-            
-            <div className="p-4 text-gray-400 text-xs">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="h-4 w-4" />
-                <span>Help & Support</span>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+        {/* Mobile Sidebar */}
+        <MobileSidebar 
+          isMobileMenuOpen={isMobileMenuOpen}
+          setIsMobileMenuOpen={setIsMobileMenuOpen}
+          sidebarLinks={sidebarLinks}
+          handleSignOut={handleSignOut}
+        />
         
         {/* Main content */}
         <main className="flex-1 overflow-auto bg-gray-50">
-          {/* Mobile header */}
-          <div className="md:hidden flex items-center justify-between p-4 border-b bg-white">
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu className="h-6 w-6" />
-            </Button>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative"
-                onClick={() => navigate("/cart")}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url} />
-                      <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          {/* Mobile Header */}
+          <MobileHeader 
+            setIsMobileMenuOpen={setIsMobileMenuOpen}
+            profile={profile}
+            user={user}
+            cartCount={cartCount}
+            handleSignOut={handleSignOut}
+          />
           
-          {/* Desktop header */}
-          <div className="hidden md:flex items-center justify-between p-4 bg-white border-b">
-            <div className="relative w-72">
-              <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-              <Input 
-                type="search" 
-                placeholder="Search" 
-                className="pl-8 bg-gray-100 border-gray-100"
-              />
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="relative"
-                onClick={() => navigate("/cart")}
-              >
-                <ShoppingCart className="h-5 w-5" />
-                {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                    {cartCount}
-                  </span>
-                )}
-              </Button>
-              
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="flex items-center gap-2">
-                    <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile?.avatar_url} />
-                      <AvatarFallback>{profile?.full_name?.charAt(0) || user?.email?.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <ChevronDown className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>My Account</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
-                    <Settings className="h-4 w-4 mr-2" />
-                    Settings
-                  </DropdownMenuItem>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={handleSignOut}>
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </div>
+          {/* Desktop Header */}
+          <DesktopHeader 
+            profile={profile}
+            user={user}
+            cartCount={cartCount}
+            handleSignOut={handleSignOut}
+          />
           
           {children}
         </main>
