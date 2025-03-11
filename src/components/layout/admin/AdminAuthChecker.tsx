@@ -30,7 +30,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
         // Check if user has admin role in the user_roles table
         const { data: userRoles, error: rolesError } = await supabase
           .from("user_roles")
-          .select("*, roles!inner(*)")
+          .select("*, roles(*)")
           .eq("user_id", user.id);
           
         if (rolesError) {
@@ -78,16 +78,21 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
         throw new Error("Could not verify current user");
       }
       
-      // Find the admin role ID for the current user
+      console.log("Removing admin role for user:", user.id);
+      
+      // Find the admin role record for the current user
       const { data: userRoles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("id, roles!inner(*)")
+        .select("id")
         .eq("user_id", user.id)
-        .eq("roles.role_name", "admin");
+        .eq("role_id", 1); // Assuming 1 is the admin role ID
         
       if (rolesError) {
+        console.error("Error finding admin role:", rolesError);
         throw new Error("Could not find admin role");
       }
+      
+      console.log("Found user roles:", userRoles);
       
       if (!userRoles || userRoles.length === 0) {
         throw new Error("No admin role found for current user");
@@ -95,12 +100,15 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
       
       // Delete the admin role assignment for this user
       const adminRoleId = userRoles[0].id;
+      console.log("Deleting user role with ID:", adminRoleId);
+      
       const { error: deleteError } = await supabase
         .from("user_roles")
         .delete()
         .eq("id", adminRoleId);
         
       if (deleteError) {
+        console.error("Error deleting role:", deleteError);
         throw new Error("Failed to remove admin role");
       }
       
@@ -109,7 +117,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
         description: "You have successfully removed your admin privileges.",
       });
       
-      navigate("/user-dashboard");
+      navigate("/dashboard");
     } catch (error) {
       console.error("Error removing admin role:", error);
       toast({
