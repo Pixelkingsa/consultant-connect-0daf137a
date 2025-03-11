@@ -33,17 +33,20 @@ export const DesktopSidebar = ({ isAdmin, handleSignOut }: DesktopSidebarProps) 
           Settings
         </Link>
         
+        <Link
+          to="/help-support"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-gray-300 hover:bg-white/5 hover:text-white mt-2"
+          )}
+        >
+          <HelpCircle className="h-4 w-4" />
+          Help & Support
+        </Link>
+        
         <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5 mt-2" onClick={handleSignOut}>
           <LogOut className="h-4 w-4 mr-2" />
           Logout
         </Button>
-      </div>
-      
-      <div className="p-4 text-gray-400 text-xs">
-        <div className="flex items-center gap-2">
-          <HelpCircle className="h-4 w-4" />
-          <span>Help & Support</span>
-        </div>
       </div>
     </aside>
   );
