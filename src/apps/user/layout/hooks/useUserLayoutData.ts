@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -107,37 +106,37 @@ export const useUserLayoutData = () => {
       {
         name: "Dashboard",
         href: "/user-dashboard",
-        icon: <LayoutDashboard className="h-5 w-5" />,
+        icon: LayoutDashboard,
         isActive: currentPath === "/user-dashboard"
       },
       {
         name: "Home",
         href: "/dashboard",
-        icon: <Home className="h-5 w-5" />,
+        icon: Home,
         isActive: currentPath === "/dashboard"
       },
       {
         name: "Shop",
         href: "/shop",
-        icon: <ShoppingBag className="h-5 w-5" />,
+        icon: ShoppingBag,
         isActive: currentPath === "/shop"
       },
       {
         name: "Orders",
         href: "/orders",
-        icon: <CreditCard className="h-5 w-5" />,
+        icon: CreditCard,
         isActive: currentPath === "/orders"
       },
       {
         name: "Referrals",
         href: "/referrals",
-        icon: <Users className="h-5 w-5" />,
+        icon: Users,
         isActive: currentPath === "/referrals"
       },
       {
         name: "News",
         href: "/news",
-        icon: <Bell className="h-5 w-5" />,
+        icon: Bell,
         isActive: currentPath === "/news"
       }
     ];
@@ -148,19 +147,19 @@ export const useUserLayoutData = () => {
       {
         name: "Profile",
         href: "/profile",
-        icon: <User className="h-5 w-5" />,
+        icon: User,
         isActive: currentPath === "/profile"
       },
       {
         name: "Settings",
         href: "/settings",
-        icon: <Settings className="h-5 w-5" />,
+        icon: Settings,
         isActive: currentPath === "/settings"
       },
       {
         name: "Help",
         href: "/help",
-        icon: <LifeBuoy className="h-5 w-5" />,
+        icon: LifeBuoy,
         isActive: currentPath === "/help"
       }
     ];
@@ -169,7 +168,7 @@ export const useUserLayoutData = () => {
       items.push({
         name: "Admin",
         href: "/admin-dashboard",
-        icon: <LayoutDashboard className="h-5 w-5" />,
+        icon: LayoutDashboard,
         isActive: currentPath.startsWith("/admin")
       });
     }
@@ -177,7 +176,7 @@ export const useUserLayoutData = () => {
     items.push({
       name: "Logout",
       href: "#",
-      icon: <LogOut className="h-5 w-5" />
+      icon: LogOut
     });
 
     return items;
