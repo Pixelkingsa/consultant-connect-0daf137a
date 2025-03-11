@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -375,34 +376,34 @@ const CustomersManagement = () => {
                             </Button>
                           </div>
                         </div>
-                      </CardContent>
-                    </Card>
-                  </TabsContent>
-                  
-                  <TabsContent value="orders">
-                    <div className="text-center py-8 text-muted-foreground">
-                      Order history view will be implemented in a future update.
-                    </div>
-                  </TabsContent>
-                  
-                  <TabsContent value="team">
-                    <div className="text-center py-8 text-muted-foreground">
-                      Team members view will be implemented in a future update.
-                    </div>
-                  </TabsContent>
-                </Tabs>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
                 
-                <DialogFooter>
-                  <Button onClick={() => setIsDialogOpen(false)}>
-                    Close
-                  </Button>
-                </DialogFooter>
-              </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    
+                <TabsContent value="orders">
+                  <div className="text-center py-8 text-muted-foreground">
+                    Order history view will be implemented in a future update.
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="team">
+                  <div className="text-center py-8 text-muted-foreground">
+                    Team members view will be implemented in a future update.
+                  </div>
+                </TabsContent>
+              </Tabs>
+              
+              <DialogFooter>
+                <Button onClick={() => setIsDialogOpen(false)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 

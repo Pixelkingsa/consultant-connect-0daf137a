@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -148,6 +149,82 @@ const WithdrawalsManagement = () => {
     return user ? user.full_name : "Unknown User";
   };
 
+  // Helper function to render the table with optional filter
+  function renderTable(filterStatus?: string) {
+    const filteredWithdrawals = filterStatus 
+      ? withdrawals.filter(w => w.status === filterStatus)
+      : withdrawals;
+    
+    return (
+      <div className="rounded-md border">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("created_at")}>
+                Date
+                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead>Consultant</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("amount")}>
+                Amount
+                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead>Method</TableHead>
+              <TableHead className="cursor-pointer" onClick={() => toggleSort("status")}>
+                Status
+                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+              </TableHead>
+              <TableHead className="text-right">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  <div className="animate-pulse">Loading withdrawals...</div>
+                </TableCell>
+              </TableRow>
+            ) : filteredWithdrawals.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={6} className="text-center py-8">
+                  No withdrawal requests found
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredWithdrawals.map((withdrawal) => (
+                <TableRow key={withdrawal.id}>
+                  <TableCell>{format(new Date(withdrawal.created_at), "MMM d, yyyy")}</TableCell>
+                  <TableCell>{withdrawal.user_id ? getUserName(withdrawal.user_id) : "Unknown"}</TableCell>
+                  <TableCell>${withdrawal.amount.toFixed(2)}</TableCell>
+                  <TableCell>{withdrawal.payment_method || "Not specified"}</TableCell>
+                  <TableCell>
+                    <Badge className={
+                      withdrawal.status === "completed" ? "bg-green-100 text-green-800" :
+                      withdrawal.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                      "bg-red-100 text-red-800"
+                    }>
+                      {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => viewWithdrawalDetails(withdrawal)}
+                    >
+                      <Eye className="mr-2 h-4 w-4" />
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div>
@@ -238,180 +315,103 @@ const WithdrawalsManagement = () => {
           {viewingWithdrawal && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
-                  <Card>
-                    <CardHeader className="py-2">
-                      <CardTitle className="text-sm font-medium">Request Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <dl className="space-y-2 text-sm">
+                <Card>
+                  <CardHeader className="py-2">
+                    <CardTitle className="text-sm font-medium">Request Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Amount:</dt>
+                        <dd>${viewingWithdrawal.amount.toFixed(2)}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Date:</dt>
+                        <dd>{format(new Date(viewingWithdrawal.created_at), "MMM d, yyyy")}</dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Status:</dt>
+                        <dd>
+                          <Badge className={
+                            viewingWithdrawal.status === "completed" ? "bg-green-100 text-green-800" :
+                            viewingWithdrawal.status === "pending" ? "bg-yellow-100 text-yellow-800" :
+                            "bg-red-100 text-red-800"
+                          }>
+                            {viewingWithdrawal.status.charAt(0).toUpperCase() + viewingWithdrawal.status.slice(1)}
+                          </Badge>
+                        </dd>
+                      </div>
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Payment Method:</dt>
+                        <dd>{viewingWithdrawal.payment_method || "Not specified"}</dd>
+                      </div>
+                      {viewingWithdrawal.reference_number && (
                         <div className="flex justify-between">
-                          <dt className="font-medium">Amount:</dt>
-                          <dd>${viewingWithdrawal.amount.toFixed(2)}</dd>
+                          <dt className="font-medium">Reference #:</dt>
+                          <dd>{viewingWithdrawal.reference_number}</dd>
                         </div>
-                        <div className="flex justify-between">
-                          <dt className="font-medium">Date:</dt>
-                          <dd>{format(new Date(viewingWithdrawal.created_at), "MMM d, yyyy")}</dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="font-medium">Status:</dt>
-                          <dd>
-                            <Badge className={
-                              viewingWithdrawal.status === "completed" ? "bg-green-100 text-green-800" :
-                              viewingWithdrawal.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                              "bg-red-100 text-red-800"
-                            }>
-                              {viewingWithdrawal.status.charAt(0).toUpperCase() + viewingWithdrawal.status.slice(1)}
-                            </Badge>
-                          </dd>
-                        </div>
-                        <div className="flex justify-between">
-                          <dt className="font-medium">Payment Method:</dt>
-                          <dd>{viewingWithdrawal.payment_method || "Not specified"}</dd>
-                        </div>
-                        {viewingWithdrawal.reference_number && (
-                          <div className="flex justify-between">
-                            <dt className="font-medium">Reference #:</dt>
-                            <dd>{viewingWithdrawal.reference_number}</dd>
-                          </div>
-                        )}
-                      </dl>
-                    </CardContent>
-                  </Card>
-                  
-                  <Card>
-                    <CardHeader className="py-2">
-                      <CardTitle className="text-sm font-medium">Consultant Information</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <dl className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <dt className="font-medium">Name:</dt>
-                          <dd>{viewingWithdrawal.user_id ? getUserName(viewingWithdrawal.user_id) : "Unknown"}</dd>
-                        </div>
-                      </dl>
-                    </CardContent>
-                  </Card>
-                </div>
+                      )}
+                    </dl>
+                  </CardContent>
+                </Card>
                 
-                {viewingWithdrawal.notes && (
-                  <Card>
-                    <CardHeader className="py-2">
-                      <CardTitle className="text-sm font-medium">Notes</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-sm">{viewingWithdrawal.notes}</p>
-                    </CardContent>
-                  </Card>
-                )}
-                
-                {viewingWithdrawal.status === "pending" && (
-                  <div className="space-y-2">
-                    <div className="font-medium">Update Request Status</div>
-                    <div className="flex space-x-2">
-                      <Button 
-                        variant="default"
-                        onClick={() => updateWithdrawalStatus(viewingWithdrawal.id, "completed")}
-                      >
-                        Approve
-                      </Button>
-                      <Button 
-                        variant="destructive"
-                        onClick={() => updateWithdrawalStatus(viewingWithdrawal.id, "rejected")}
-                      >
-                        Reject
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-                    Close
-                  </Button>
-                </DialogFooter>
+                <Card>
+                  <CardHeader className="py-2">
+                    <CardTitle className="text-sm font-medium">Consultant Information</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <dl className="space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <dt className="font-medium">Name:</dt>
+                        <dd>{viewingWithdrawal.user_id ? getUserName(viewingWithdrawal.user_id) : "Unknown"}</dd>
+                      </div>
+                    </dl>
+                  </CardContent>
+                </Card>
               </div>
-            )}
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AdminLayout>
-  );
-
-  // Helper function to render the table with optional filter
-  function renderTable(filterStatus?: string) {
-    const filteredWithdrawals = filterStatus 
-      ? withdrawals.filter(w => w.status === filterStatus)
-      : withdrawals;
-    
-    return (
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("created_at")}>
-                Date
-                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>Consultant</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("amount")}>
-                Amount
-                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead>Method</TableHead>
-              <TableHead className="cursor-pointer" onClick={() => toggleSort("status")}>
-                Status
-                <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-              </TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  <div className="animate-pulse">Loading withdrawals...</div>
-                </TableCell>
-              </TableRow>
-            ) : filteredWithdrawals.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={6} className="text-center py-8">
-                  No withdrawal requests found
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredWithdrawals.map((withdrawal) => (
-                <TableRow key={withdrawal.id}>
-                  <TableCell>{format(new Date(withdrawal.created_at), "MMM d, yyyy")}</TableCell>
-                  <TableCell>{withdrawal.user_id ? getUserName(withdrawal.user_id) : "Unknown"}</TableCell>
-                  <TableCell>${withdrawal.amount.toFixed(2)}</TableCell>
-                  <TableCell>{withdrawal.payment_method || "Not specified"}</TableCell>
-                  <TableCell>
-                    <Badge className={
-                      withdrawal.status === "completed" ? "bg-green-100 text-green-800" :
-                      withdrawal.status === "pending" ? "bg-yellow-100 text-yellow-800" :
-                      "bg-red-100 text-red-800"
-                    }>
-                      {withdrawal.status.charAt(0).toUpperCase() + withdrawal.status.slice(1)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => viewWithdrawalDetails(withdrawal)}
+              
+              {viewingWithdrawal.notes && (
+                <Card>
+                  <CardHeader className="py-2">
+                    <CardTitle className="text-sm font-medium">Notes</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm">{viewingWithdrawal.notes}</p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {viewingWithdrawal.status === "pending" && (
+                <div className="space-y-2">
+                  <div className="font-medium">Update Request Status</div>
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="default"
+                      onClick={() => updateWithdrawalStatus(viewingWithdrawal.id, "completed")}
                     >
-                      <Eye className="mr-2 h-4 w-4" />
-                      View
+                      Approve
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
-    );
-  }
+                    <Button 
+                      variant="destructive"
+                      onClick={() => updateWithdrawalStatus(viewingWithdrawal.id, "rejected")}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                  Close
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
 };
 
 export default WithdrawalsManagement;
