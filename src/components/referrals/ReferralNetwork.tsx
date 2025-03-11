@@ -1,7 +1,17 @@
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, GitBranch, UserPlus } from "lucide-react";
+import { User, GitBranch, UserPlus, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 
 interface ReferredUser {
   id: string;
@@ -18,6 +28,7 @@ interface ReferralNetworkProps {
 
 const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
   const networkRef = useRef<HTMLDivElement>(null);
+  const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
   
   // Group users by generation level (assuming all are direct referrals for now)
   const directReferrals = referredUsers.slice(0, Math.min(5, referredUsers.length));
@@ -50,6 +61,12 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
   // Use real referrals if available, otherwise use placeholders but with visual indicator
   const displayReferrals = referredUsers.length > 0 ? directReferrals : placeholderReferrals;
   
+  const handleUserClick = (user: ReferredUser) => {
+    // Don't open dialog for placeholder examples
+    if (referredUsers.length === 0) return;
+    setSelectedUser(user);
+  };
+  
   return (
     <div className="mb-8">
       <Card className="border rounded-lg overflow-hidden shadow-sm">
@@ -80,10 +97,13 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                       <div className="absolute top-6 right-[calc(100%+0.5rem)] w-[7rem] h-0.5 bg-purple-200"></div>
                     )}
                     
-                    {/* User node with proper styling */}
-                    <div className={`w-12 h-12 ${referredUsers.length === 0 ? 'bg-purple-400' : 'bg-purple-500'} 
-                                   rounded-full flex items-center justify-center shadow-md border-2 border-white
-                                   ${referredUsers.length === 0 ? 'border-dashed' : ''}`}>
+                    {/* User node with proper styling and click handler */}
+                    <div 
+                      className={`w-12 h-12 ${referredUsers.length === 0 ? 'bg-purple-400' : 'bg-purple-500'} 
+                                rounded-full flex items-center justify-center shadow-md border-2 border-white
+                                ${referredUsers.length === 0 ? 'border-dashed' : 'cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all'}`}
+                      onClick={() => handleUserClick(user)}
+                    >
                       <User className="h-6 w-6 text-white" />
                     </div>
                     <div className="mt-2 text-center">
@@ -130,6 +150,63 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* User Detail Dialog */}
+      <Dialog open={!!selectedUser} onOpenChange={(isOpen) => !isOpen && setSelectedUser(null)}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Referral Details</DialogTitle>
+            <DialogDescription>
+              Information about your referral
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedUser && (
+            <div className="space-y-4 py-4">
+              <div className="flex items-center space-x-4">
+                <Avatar className="h-16 w-16 bg-purple-100 text-purple-600">
+                  <AvatarFallback className="text-xl font-semibold">
+                    {selectedUser.name.split(' ').map(n => n[0]).join('')}
+                  </AvatarFallback>
+                </Avatar>
+                
+                <div>
+                  <h3 className="text-lg font-medium">{selectedUser.name}</h3>
+                  <p className="text-sm text-muted-foreground">{selectedUser.email}</p>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4 pt-2">
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Status</p>
+                  <div className={`text-sm mt-1 font-medium px-2 py-1 rounded-full inline-block ${
+                    selectedUser.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                  }`}>
+                    {selectedUser.status === 'active' ? 'Active' : 'Inactive'}
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-muted-foreground">Joined</p>
+                  <p className="text-sm">{new Date(selectedUser.date).toLocaleDateString()}</p>
+                </div>
+              </div>
+              
+              <div className="pt-2">
+                <p className="text-sm font-medium text-muted-foreground mb-2">Recent Activity</p>
+                <div className="bg-muted rounded-md p-3 text-sm">
+                  <p className="text-center text-muted-foreground">Activity data coming soon</p>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div className="flex justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Close</Button>
+            </DialogClose>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
