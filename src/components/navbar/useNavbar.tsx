@@ -69,7 +69,7 @@ export function useNavbar() {
     const navLinks = [
       { name: "Home", path: "/" },
       { name: "Products", path: "/shop" },
-      { name: "Dashboard", path: "/dashboard" }
+      { name: "User Dashboard", path: "/user-dashboard" }
     ];
 
     if (isAdmin) {

@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -75,7 +74,7 @@ export const AppRoutes = () => {
             isAuthenticated 
               ? (isAdmin 
                   ? <Navigate to="/admin-dashboard" replace /> 
-                  : <Navigate to="/dashboard" replace />)
+                  : <Navigate to="/user-dashboard" replace />)
               : <Navigate to="/auth" replace />
           } 
         />
@@ -85,7 +84,7 @@ export const AppRoutes = () => {
           isAuthenticated 
             ? (isAdmin 
                 ? <Navigate to="/admin-dashboard" replace /> 
-                : <Navigate to="/dashboard" replace />)
+                : <Navigate to="/user-dashboard" replace />)
             : <Auth />
         } />
         
