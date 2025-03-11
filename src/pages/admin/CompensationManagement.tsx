@@ -1,23 +1,13 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import AdminLayout from "@/components/layout/AdminLayout";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { RankForm, type RankFormValues } from "@/components/admin/ranks/RankForm";
-import { RanksTable } from "@/components/admin/ranks/RanksTable";
-import { RanksChart } from "@/components/admin/ranks/RanksChart";
-import { RankSummary } from "@/components/admin/ranks/RankSummary";
+import { type RankFormValues } from "@/components/admin/ranks/RankForm";
+import { RankHeader } from "@/components/admin/ranks/RankHeader";
+import { RankDialog } from "@/components/admin/ranks/RankDialog";
+import { RankDashboard } from "@/components/admin/ranks/RankDashboard";
 import { prepareChartData } from "@/utils/rankUtils";
+import { fetchRanks, saveRank, updateRankOrder } from "@/utils/rankDataService";
 
 const CompensationManagement = () => {
   const { toast } = useToast();
@@ -26,16 +16,11 @@ const CompensationManagement = () => {
   const [editingRank, setEditingRank] = useState<null | any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const fetchRanks = async () => {
+  const loadRanks = async () => {
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("ranks")
-        .select("*")
-        .order("threshold_pv", { ascending: true });
-      
-      if (error) throw error;
-      setRanks(data || []);
+      const data = await fetchRanks();
+      setRanks(data);
     } catch (error) {
       console.error("Error fetching ranks:", error);
       toast({
@@ -49,47 +34,21 @@ const CompensationManagement = () => {
   };
 
   useEffect(() => {
-    fetchRanks();
+    loadRanks();
   }, []);
 
   const onSubmit = async (values: RankFormValues) => {
     try {
-      // Ensure all required fields are present with their correct types
-      const rankData = {
-        name: values.name,
-        commission_rate: Number(values.commission_rate),
-        threshold_pv: Number(values.threshold_pv),
-        threshold_gv: Number(values.threshold_gv)
-      };
-
-      if (editingRank) {
-        const { error } = await supabase
-          .from("ranks")
-          .update(rankData)
-          .eq("id", editingRank.id);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: "Rank updated successfully",
-        });
-      } else {
-        const { error } = await supabase
-          .from("ranks")
-          .insert([rankData]);
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: "Rank created successfully",
-        });
-      }
+      const result = await saveRank(values, editingRank?.id || null);
+      
+      toast({
+        title: "Success",
+        description: `Rank ${result.action} successfully`,
+      });
       
       setIsDialogOpen(false);
       setEditingRank(null);
-      fetchRanks();
+      loadRanks();
     } catch (error) {
       console.error("Error saving rank:", error);
       toast({
@@ -101,47 +60,15 @@ const CompensationManagement = () => {
   };
 
   const moveRank = async (rankId: string, direction: 'up' | 'down') => {
-    const rankIndex = ranks.findIndex(r => r.id === rankId);
-    if (rankIndex === -1) return;
-    
-    const swapIndex = direction === 'up' ? rankIndex - 1 : rankIndex + 1;
-    if (swapIndex < 0 || swapIndex >= ranks.length) return;
-    
     try {
-      const currentRank = ranks[rankIndex];
-      const swapRank = ranks[swapIndex];
-      
-      const updates = [
-        {
-          id: currentRank.id,
-          threshold_pv: swapRank.threshold_pv,
-          threshold_gv: swapRank.threshold_gv
-        },
-        {
-          id: swapRank.id,
-          threshold_pv: currentRank.threshold_pv,
-          threshold_gv: currentRank.threshold_gv
-        }
-      ];
-      
-      for (const update of updates) {
-        const { error } = await supabase
-          .from("ranks")
-          .update({ 
-            threshold_pv: update.threshold_pv,
-            threshold_gv: update.threshold_gv
-          })
-          .eq("id", update.id);
-          
-        if (error) throw error;
-      }
+      await updateRankOrder(ranks, rankId, direction);
       
       toast({
         title: "Success",
         description: "Rank order updated successfully",
       });
       
-      fetchRanks();
+      loadRanks();
     } catch (error) {
       console.error("Error updating rank order:", error);
       toast({
@@ -162,51 +89,22 @@ const CompensationManagement = () => {
   return (
     <AdminLayout>
       <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Compensation Management</h1>
-            <p className="text-muted-foreground">Configure ranks and commission structures</p>
-          </div>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button onClick={() => openRankDialog()}>
-                <Plus className="mr-2 h-4 w-4" />
-                Add Rank
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingRank ? "Edit Rank" : "Add New Rank"}
-                </DialogTitle>
-                <DialogDescription>
-                  Configure the rank details and qualification criteria
-                </DialogDescription>
-              </DialogHeader>
-              <RankForm 
-                onSubmit={onSubmit}
-                initialValues={editingRank}
-              />
-            </DialogContent>
-          </Dialog>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-6">
-          <RanksChart data={chartData} />
-          <RankSummary ranks={ranks} />
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center">
-            <div className="animate-pulse">Loading ranks...</div>
-          </div>
-        ) : (
-          <RanksTable 
-            ranks={ranks}
-            onMoveRank={moveRank}
-            onEditRank={openRankDialog}
-          />
-        )}
+        <RankHeader openRankDialog={openRankDialog} />
+        
+        <RankDialog 
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingRank={editingRank}
+          onSubmit={onSubmit}
+        />
+        
+        <RankDashboard 
+          ranks={ranks}
+          loading={loading}
+          chartData={chartData}
+          onMoveRank={moveRank}
+          onEditRank={openRankDialog}
+        />
       </div>
     </AdminLayout>
   );
