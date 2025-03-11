@@ -17,6 +17,8 @@ interface Product {
   subcategory: string | null;
   description: string | null;
   stock_quantity: number;
+  created_at: string;
+  updated_at: string;
 }
 
 const ShopContent = () => {
@@ -44,7 +46,7 @@ const ShopContent = () => {
         const productsWithStock = (data || []).map(product => ({
           ...product,
           stock_quantity: product.stock_quantity || 0
-        }));
+        })) as Product[];
         
         setProducts(productsWithStock);
         
