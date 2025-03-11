@@ -10,11 +10,7 @@ export const fetchProducts = async (): Promise<Product[]> => {
   
   if (error) throw error;
   
-  // Ensure stock_quantity exists on all products
-  return (data as any[])?.map(product => ({
-    ...product,
-    stock_quantity: product.stock_quantity || 0
-  })) as Product[] || [];
+  return data as Product[] || [];
 };
 
 export const createProduct = async (values: ProductFormValues): Promise<void> => {
@@ -26,8 +22,7 @@ export const createProduct = async (values: ProductFormValues): Promise<void> =>
       price: values.price,
       category: values.category,
       vp_points: values.vp_points,
-      image_url: values.image_url,
-      stock_quantity: values.stock_quantity
+      image_url: values.image_url
     }]);
   
   if (error) throw error;
@@ -42,8 +37,7 @@ export const updateProduct = async (id: string, values: ProductFormValues): Prom
       price: values.price,
       category: values.category,
       vp_points: values.vp_points,
-      image_url: values.image_url,
-      stock_quantity: values.stock_quantity
+      image_url: values.image_url
     })
     .eq("id", id);
   

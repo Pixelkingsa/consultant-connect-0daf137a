@@ -8,8 +8,7 @@ export const productSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number"),
   category: z.string().default("Uncategorized"),
   vp_points: z.coerce.number().min(0, "VP points must be a positive number"),
-  image_url: z.string().optional(),
-  stock_quantity: z.coerce.number().min(0, "Stock quantity must be a positive number")
+  image_url: z.string().optional()
 });
 
 export type ProductFormValues = z.infer<typeof productSchema>;
@@ -22,7 +21,6 @@ export interface Product {
   category: string;
   vp_points: number;
   image_url?: string;
-  stock_quantity: number;
   created_at: string;
   updated_at?: string;
   subcategory?: string;

@@ -27,14 +27,13 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
             <TableHead>VP Points</TableHead>
-            <TableHead>Stock</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={6} className="text-center py-8">
+              <TableCell colSpan={5} className="text-center py-8">
                 No products found. Add one to get started!
               </TableCell>
             </TableRow>
@@ -45,7 +44,6 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
                 <TableCell>{product.category}</TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
                 <TableCell>{product.vp_points}</TableCell>
-                <TableCell>{product.stock_quantity}</TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end space-x-2">
                     <Button

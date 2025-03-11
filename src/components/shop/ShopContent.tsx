@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, ChevronDown, Loader2 } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import ProductCard from "./ProductCard";
 import { Product } from "@/types/product";
 
@@ -28,21 +29,15 @@ const ShopContent = () => {
           
         if (error) throw error;
         
-        // Map the data to ensure all products have stock_quantity property
-        const productsWithStock = data?.map(product => ({
-          ...product,
-          stock_quantity: product.stock_quantity || 0
-        })) as Product[];
-        
-        setProducts(productsWithStock || []);
+        setProducts(data as Product[] || []);
         
         // Extract unique categories and subcategories
         const uniqueCategories = Array.from(
-          new Set(productsWithStock?.map(product => product.category) || [])
+          new Set(data?.map(product => product.category) || [])
         ).filter(Boolean);
         
         const uniqueSubcategories = Array.from(
-          new Set(productsWithStock?.map(product => product.subcategory) || [])
+          new Set(data?.map(product => product.subcategory) || [])
         ).filter(Boolean) as string[];
         
         setCategories(uniqueCategories as string[]);
@@ -154,7 +149,6 @@ const ShopContent = () => {
               name={product.name}
               price={`$${product.price.toFixed(2)}`}
               vp={product.vp_points}
-              stock={product.stock_quantity}
             />
           ))}
         </div>

@@ -29,8 +29,7 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
       price: 0,
       category: "Uncategorized",
       vp_points: 0,
-      image_url: "",
-      stock_quantity: 0
+      image_url: ""
     }
   });
 
@@ -43,8 +42,7 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         price: editingProduct.price || 0,
         category: editingProduct.category || "Uncategorized",
         vp_points: editingProduct.vp_points || 0,
-        image_url: editingProduct.image_url || "",
-        stock_quantity: editingProduct.stock_quantity || 0
+        image_url: editingProduct.image_url || ""
       });
     } else {
       form.reset({
@@ -53,8 +51,7 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         price: 0,
         category: "Uncategorized",
         vp_points: 0,
-        image_url: "",
-        stock_quantity: 0
+        image_url: ""
       });
     }
   }, [editingProduct, form]);
@@ -103,34 +100,19 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
             )}
           />
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="category"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Category</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="stock_quantity"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Stock Quantity</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <FormField
+          control={form.control}
+          name="category"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <FormField
           control={form.control}
           name="image_url"
