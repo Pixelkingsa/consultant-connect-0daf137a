@@ -19,15 +19,15 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Log admin status for debugging
-    console.log("Dashboard loaded with auth state:", { isAdmin, userId });
-    
-    // Redirect admin users who somehow reached this page
+    // Immediately redirect admin users
     if (isAdmin) {
       console.log("Admin user detected in Dashboard, redirecting to admin dashboard");
       navigate("/admin-dashboard", { replace: true });
       return;
     }
+    
+    // Log admin status for debugging
+    console.log("Dashboard loaded with auth state:", { isAdmin, userId });
     
     const checkUser = async () => {
       try {
@@ -76,6 +76,11 @@ const Dashboard = () => {
         <Loader size="lg" text="Loading your dashboard..." />
       </div>
     );
+  }
+  
+  // Additional safety check - don't render for admins
+  if (isAdmin) {
+    return null;
   }
   
   return (

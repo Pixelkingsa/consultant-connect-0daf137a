@@ -1,4 +1,7 @@
+
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import UserDashboard from "@/pages/UserDashboard";
@@ -19,8 +22,6 @@ import NotFound from "@/pages/NotFound";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Loader } from "@/components/ui/loader";
-import { useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 
 export const AppRoutes = () => {
   const { isAuthenticated, isAdmin, userId } = useAuth();
@@ -41,11 +42,21 @@ export const AppRoutes = () => {
     console.log(`Current route: ${location.pathname}`);
     console.log(`Auth status: isAuthenticated=${isAuthenticated}, isAdmin=${isAdmin}, userId=${userId}`);
     
-    // Force redirect admin to admin dashboard if on user dashboard
-    if (isAuthenticated && isAdmin && 
-        (location.pathname === "/dashboard" || location.pathname === "/user-dashboard")) {
-      console.log("Admin detected on user dashboard, redirecting to admin dashboard");
-      navigate("/admin-dashboard", { replace: true });
+    // Handle specific routing based on role
+    if (isAuthenticated) {
+      if (isAdmin) {
+        // If admin is on a user-specific route, redirect to admin dashboard
+        if (location.pathname === "/dashboard" || location.pathname === "/user-dashboard") {
+          console.log("Admin user detected, redirecting to admin dashboard");
+          navigate("/admin-dashboard", { replace: true });
+        }
+      } else {
+        // If regular user tries to access admin routes, redirect to user dashboard
+        if (location.pathname.startsWith("/admin")) {
+          console.log("Regular user detected on admin route, redirecting to dashboard");
+          navigate("/dashboard", { replace: true });
+        }
+      }
     }
   }, [isAuthenticated, isAdmin, location.pathname, userId, navigate]);
 

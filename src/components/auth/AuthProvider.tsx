@@ -27,29 +27,29 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [userId, setUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
+  // Function to check admin status directly from the database
   const checkAdminStatus = async (userId: string) => {
+    console.log("Checking admin status for user:", userId);
+    
     try {
-      // Use the direct query to user_roles table with a join to roles
-      const { data: userRoles, error } = await supabase
+      // Check if the user has the admin role
+      const { data, error } = await supabase
         .from("user_roles")
-        .select("*, roles(*)")
-        .eq("user_id", userId);
-            
-      console.log("User roles data:", userRoles);
-      console.log("User roles error:", error);
+        .select("roles(*)")
+        .eq("user_id", userId)
+        .eq("roles.role_name", "admin")
+        .single();
       
-      if (error) {
+      if (error && error.code !== "PGRST116") { // PGRST116 is "no rows returned"
         console.error("Error checking admin status:", error);
         return false;
       }
       
-      // Check if the user has an admin role
-      const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
-      console.log("Has admin role:", hasAdminRole);
-      
-      return hasAdminRole || false;
+      const isAdmin = !!data;
+      console.log("Admin check result:", isAdmin, "data:", data);
+      return isAdmin;
     } catch (err) {
-      console.error("Exception checking admin status:", err);
+      console.error("Exception in admin status check:", err);
       return false;
     }
   };
@@ -58,10 +58,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check if user is authenticated
     const checkAuth = async () => {
       try {
+        console.log("Checking authentication status...");
         const { data, error } = await supabase.auth.getSession();
         
         console.log("Session data:", data);
-        console.log("Session error:", error);
+        
+        if (error) {
+          console.error("Session error:", error);
+          setIsAuthenticated(false);
+          setUserId(null);
+          setIsAdmin(false);
+          return;
+        }
         
         const sessionExists = !!data.session;
         setIsAuthenticated(sessionExists);
@@ -70,11 +78,18 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           const currentUserId = data.session.user.id;
           setUserId(currentUserId);
           
-          // Check admin status and update state
+          // Direct check for admin role
           const adminStatus = await checkAdminStatus(currentUserId);
           setIsAdmin(adminStatus);
           
           console.log(`User ${currentUserId} authenticated, admin status: ${adminStatus}`);
+          
+          if (adminStatus) {
+            toast({
+              title: "Admin access granted",
+              description: "You're logged in with administrator privileges.",
+            });
+          }
         } else {
           setUserId(null);
           setIsAdmin(false);
@@ -85,49 +100,49 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUserId(null);
         setIsAdmin(false);
       }
-      
-      // Set up auth state listener
-      const { data: authListener } = supabase.auth.onAuthStateChange(
-        async (event, session) => {
-          console.log("Auth state change event:", event);
-          console.log("New session:", session);
-          
-          setIsAuthenticated(!!session);
-          
-          // Reset user info when logged out
-          if (!session) {
-            setUserId(null);
-            setIsAdmin(false);
-            return;
-          }
-          
-          // Set user ID and check admin status when logged in
-          if (session?.user) {
-            const currentUserId = session.user.id;
-            setUserId(currentUserId);
-            
-            // Check admin status and update state
-            const adminStatus = await checkAdminStatus(currentUserId);
-            setIsAdmin(adminStatus);
-            
-            console.log(`User ${currentUserId} state changed, admin status: ${adminStatus}`);
-            
-            if (adminStatus) {
-              toast({
-                title: "Admin access granted",
-                description: "You're logged in with administrator privileges.",
-              });
-            }
-          }
-        }
-      );
-      
-      return () => {
-        authListener.subscription.unsubscribe();
-      };
     };
     
     checkAuth();
+    
+    // Set up auth state listener
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log("Auth state change event:", event);
+        
+        setIsAuthenticated(!!session);
+        
+        // Reset user info when logged out
+        if (!session) {
+          console.log("No session found, setting user as logged out");
+          setUserId(null);
+          setIsAdmin(false);
+          return;
+        }
+        
+        // Set user ID and check admin status when logged in
+        if (session?.user) {
+          const currentUserId = session.user.id;
+          setUserId(currentUserId);
+          
+          // Direct check for admin role
+          const adminStatus = await checkAdminStatus(currentUserId);
+          setIsAdmin(adminStatus);
+          
+          console.log(`User ${currentUserId} state changed, admin status: ${adminStatus}`);
+          
+          if (adminStatus) {
+            toast({
+              title: "Admin access granted",
+              description: "You're logged in with administrator privileges.",
+            });
+          }
+        }
+      }
+    );
+    
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, [toast]);
 
   return (
