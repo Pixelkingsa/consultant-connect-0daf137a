@@ -8,6 +8,7 @@ export const productSchema = z.object({
   price: z.coerce.number().min(0, "Price must be a positive number"),
   category: z.string().default("Uncategorized"),
   vp_points: z.coerce.number().min(0, "VP points must be a positive number"),
+  image: z.instanceof(File).optional().or(z.string().optional()),
   image_url: z.string().optional()
 });
 

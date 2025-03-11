@@ -1,5 +1,5 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ProductFormValues, productSchema, Product } from "@/types/product";
+import { supabase } from "@/integrations/supabase/client";
+import { Image } from "lucide-react";
 
 interface ProductFormProps {
   editingProduct: Product | null;
@@ -21,6 +23,9 @@ interface ProductFormProps {
 }
 
 const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -44,6 +49,12 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         vp_points: editingProduct.vp_points || 0,
         image_url: editingProduct.image_url || ""
       });
+      
+      if (editingProduct.image_url) {
+        setImagePreview(editingProduct.image_url);
+      } else {
+        setImagePreview(null);
+      }
     } else {
       form.reset({
         name: "",
@@ -53,12 +64,68 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         vp_points: 0,
         image_url: ""
       });
+      setImagePreview(null);
     }
   }, [editingProduct, form]);
 
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Set the image in the form
+    form.setValue("image", file);
+    
+    // Create a preview
+    const objectUrl = URL.createObjectURL(file);
+    setImagePreview(objectUrl);
+    
+    // Clear the image_url as we're using a file upload
+    form.setValue("image_url", "");
+  };
+
+  const handleSubmit = async (values: ProductFormValues) => {
+    setIsUploading(true);
+    try {
+      // Check if there's a file to upload
+      if (values.image instanceof File) {
+        const file = values.image;
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+        const filePath = `product-images/${fileName}`;
+        
+        // Upload the file to Supabase Storage
+        const { error: uploadError } = await supabase.storage
+          .from('products')
+          .upload(filePath, file);
+          
+        if (uploadError) {
+          throw uploadError;
+        }
+        
+        // Get the public URL
+        const { data } = supabase.storage
+          .from('products')
+          .getPublicUrl(filePath);
+          
+        // Set the image_url to the uploaded file's public URL
+        values.image_url = data.publicUrl;
+      }
+      
+      // Remove the file from values before submitting (it's already uploaded)
+      const { image, ...submitValues } = values;
+      
+      // Call the parent's onSubmit with the processed values
+      await onSubmit(submitValues as ProductFormValues);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <FormField
           control={form.control}
           name="name"
@@ -115,14 +182,38 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
         />
         <FormField
           control={form.control}
-          name="image_url"
-          render={({ field }) => (
+          name="image"
+          render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
-              <FormLabel>Image URL</FormLabel>
-              <FormControl>
-                <Input placeholder="https://example.com/image.jpg" {...field} />
-              </FormControl>
-              <FormMessage />
+              <FormLabel>Product Image</FormLabel>
+              <div className="flex flex-col space-y-2">
+                {imagePreview && (
+                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
+                    <img 
+                      src={imagePreview} 
+                      alt="Product preview" 
+                      className="w-full h-full object-contain" 
+                    />
+                  </div>
+                )}
+                <FormControl>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      className="flex-1"
+                      onChange={handleImageChange}
+                      {...fieldProps}
+                    />
+                  </div>
+                </FormControl>
+                {editingProduct?.image_url && !imagePreview && (
+                  <div className="text-sm text-muted-foreground">
+                    Current image: {editingProduct.image_url}
+                  </div>
+                )}
+                <FormMessage />
+              </div>
             </FormItem>
           )}
         />
@@ -144,7 +235,9 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
           )}
         />
         <DialogFooter className="mt-6">
-          <Button type="submit">Save Product</Button>
+          <Button type="submit" disabled={isUploading}>
+            {isUploading ? "Uploading..." : "Save Product"}
+          </Button>
         </DialogFooter>
       </form>
     </Form>
