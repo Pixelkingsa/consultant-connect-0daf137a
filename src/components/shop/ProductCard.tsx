@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -112,7 +111,7 @@ const ProductCard = ({ id, image, name, price, vp }: ProductCardProps) => {
         <img 
           src={image} 
           alt={name} 
-          className="w-full h-full object-contain"
+          className="max-h-full max-w-full object-contain"
         />
         <Button
           variant="ghost"
