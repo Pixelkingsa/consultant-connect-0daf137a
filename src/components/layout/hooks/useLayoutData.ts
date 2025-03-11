@@ -4,16 +4,24 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  LayoutDashboard, 
   Home, 
-  Package, 
+  ShoppingBag, 
   CreditCard, 
-  Users, 
   User, 
-  Bell, 
-  Settings 
+  Settings,
+  LogOut,
+  LayoutDashboard,
+  Users,
+  Bell,
+  LifeBuoy
 } from "lucide-react";
-import { NavItem } from "../types";
+
+export interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ReactNode;
+  isActive?: boolean;
+}
 
 export const useLayoutData = () => {
   const navigate = useNavigate();
@@ -73,34 +81,106 @@ export const useLayoutData = () => {
   }, [navigate]);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
-    navigate("/auth");
+    try {
+      await supabase.auth.signOut();
+      navigate("/auth");
+      toast({
+        title: "Logged out",
+        description: "You have been successfully logged out.",
+      });
+    } catch (error) {
+      console.error("Error signing out:", error);
+      toast({
+        title: "Error",
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  // Define sidebar links
-  const getSidebarLinks = (): NavItem[] => {
-    const links: NavItem[] = [
-      { name: "User Dashboard", path: "/user-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-      { name: "Home", path: "/dashboard", icon: <Home className="h-5 w-5" /> },
-      { name: "Shop", path: "/shop", icon: <Package className="h-5 w-5" /> },
-      { name: "Orders", path: "/orders", icon: <CreditCard className="h-5 w-5" /> },
-      { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
-      { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
-      { name: "News", path: "/news", icon: <Bell className="h-5 w-5" /> },
-      { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> }
+  const getNavItems = (currentPath: string): NavItem[] => {
+    return [
+      {
+        name: "Home",
+        href: "/dashboard",
+        icon: <Home className="h-5 w-5" />,
+        isActive: currentPath === "/dashboard"
+      },
+      {
+        name: "Shop",
+        href: "/shop",
+        icon: <ShoppingBag className="h-5 w-5" />,
+        isActive: currentPath === "/shop"
+      },
+      {
+        name: "Orders",
+        href: "/orders",
+        icon: <CreditCard className="h-5 w-5" />,
+        isActive: currentPath === "/orders"
+      },
+      {
+        name: "Referrals",
+        href: "/referrals",
+        icon: <Users className="h-5 w-5" />,
+        isActive: currentPath === "/referrals"
+      },
+      {
+        name: "News",
+        href: "/news",
+        icon: <Bell className="h-5 w-5" />,
+        isActive: currentPath === "/news"
+      },
+      {
+        name: "Dashboard",
+        href: "/user-dashboard",
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        isActive: currentPath === "/user-dashboard"
+      }
     ];
-    
+  };
+
+  const getUserMenuItems = (currentPath: string): NavItem[] => {
+    const items: NavItem[] = [
+      {
+        name: "Profile",
+        href: "/profile",
+        icon: <User className="h-5 w-5" />,
+        isActive: currentPath === "/profile"
+      },
+      {
+        name: "Settings",
+        href: "/settings",
+        icon: <Settings className="h-5 w-5" />,
+        isActive: currentPath === "/settings"
+      },
+      {
+        name: "Help",
+        href: "/help",
+        icon: <LifeBuoy className="h-5 w-5" />,
+        isActive: currentPath === "/help"
+      }
+    ];
+
     if (isAdmin) {
-      links.push(
-        { name: "Admin Dashboard", path: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }
-      );
+      items.push({
+        name: "Admin",
+        href: "/admin-dashboard",
+        icon: <LayoutDashboard className="h-5 w-5" />,
+        isActive: currentPath.startsWith("/admin")
+      });
     }
-    
-    return links;
+
+    items.push({
+      name: "Logout",
+      href: "#",
+      icon: <LogOut className="h-5 w-5" />
+    });
+
+    return items;
   };
 
   return {
@@ -113,6 +193,7 @@ export const useLayoutData = () => {
     loading,
     handleSignOut,
     toggleMobileMenu,
-    sidebarLinks: getSidebarLinks()
+    getNavItems,
+    getUserMenuItems
   };
 };
