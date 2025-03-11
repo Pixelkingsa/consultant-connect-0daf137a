@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader } from "@/components/ui/loader";
 
 interface AdminAuthCheckerProps {
   children: (isAdmin: boolean) => React.ReactNode;
@@ -76,7 +76,9 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader size="lg" text="Loading admin dashboard..." />
+        <div className="animate-pulse text-center">
+          <p className="text-lg text-muted-foreground">Loading admin dashboard...</p>
+        </div>
       </div>
     );
   }

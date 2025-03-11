@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -5,7 +6,6 @@ import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader } from "@/components/ui/loader";
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -59,7 +59,9 @@ const Dashboard = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader size="lg" text="Loading your dashboard..." />
+        <div className="animate-pulse text-center">
+          <p className="text-lg text-muted-foreground">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
