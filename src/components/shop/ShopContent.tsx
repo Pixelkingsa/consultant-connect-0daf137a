@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -6,20 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronDown, Loader2 } from "lucide-react";
 import ProductCard from "./ProductCard";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  image_url: string | null;
-  vp_points: number;
-  category: string;
-  subcategory: string | null;
-  description: string | null;
-  stock_quantity: number;
-  created_at: string;
-  updated_at: string;
-}
+import { Product } from "@/types/product";
 
 const ShopContent = () => {
   const { toast } = useToast();

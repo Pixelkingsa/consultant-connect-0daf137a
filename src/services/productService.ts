@@ -10,7 +10,11 @@ export const fetchProducts = async (): Promise<Product[]> => {
   
   if (error) throw error;
   
-  return data as Product[] || [];
+  // Ensure stock_quantity exists on all products
+  return (data as any[])?.map(product => ({
+    ...product,
+    stock_quantity: product.stock_quantity || 0
+  })) as Product[] || [];
 };
 
 export const createProduct = async (values: ProductFormValues): Promise<void> => {
