@@ -35,10 +35,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Check if user has admin role
           const { data: userRoles } = await supabase
             .from("user_roles")
-            .select("*")
+            .select("*, roles!inner(*)")
             .eq("user_id", user.id);
             
-          const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+          const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
           setIsAdmin(hasAdminRole);
         }
       }
@@ -58,10 +58,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           if (session?.user) {
             const { data: userRoles } = await supabase
               .from("user_roles")
-              .select("*")
+              .select("*, roles!inner(*)")
               .eq("user_id", session.user.id);
               
-            const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+            const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
             setIsAdmin(hasAdminRole);
           }
         }

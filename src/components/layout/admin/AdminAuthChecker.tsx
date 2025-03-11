@@ -28,7 +28,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
         // Check if user has admin role in the user_roles table
         const { data: userRoles, error: rolesError } = await supabase
           .from("user_roles")
-          .select("*")
+          .select("*, roles!inner(*)")
           .eq("user_id", user.id);
           
         if (rolesError) {
@@ -43,7 +43,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
         }
         
         // Check if the user has an admin role
-        const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+        const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
         
         if (hasAdminRole) {
           setIsAdmin(true);
