@@ -27,7 +27,7 @@ export const MobileSidebar = ({
             <img 
               src="/lovable-uploads/fee0da40-393a-4a41-94d1-bd5474c288c9.png" 
               alt="VAMNA Logo" 
-              className="h-8 w-auto" 
+              className="h-12 w-auto" 
             />
           </div>
         </div>
