@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import {
   Bell,
   ChevronDown,
@@ -25,6 +24,10 @@ import {
   Users
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+
+// NOTE: This component is now used only for legacy routes that haven't been 
+// migrated to the new user/admin structure yet. New pages should use UserLayout 
+// or AdminLayout instead.
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -89,20 +92,21 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     navigate("/auth");
   };
   
+  // Updated paths to use the new structure
   const sidebarLinks = [
-    { name: "User Dashboard", path: "/user-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: "Home", path: "/dashboard", icon: <Home className="h-5 w-5" /> },
-    { name: "Shop", path: "/shop", icon: <Package className="h-5 w-5" /> },
-    { name: "Orders", path: "/orders", icon: <CreditCard className="h-5 w-5" /> },
-    { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
-    { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
-    { name: "News", path: "/news", icon: <Bell className="h-5 w-5" /> },
-    { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
+    { name: "User Dashboard", path: "/user/user-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: "Home", path: "/user/dashboard", icon: <Home className="h-5 w-5" /> },
+    { name: "Shop", path: "/user/shop", icon: <Package className="h-5 w-5" /> },
+    { name: "Orders", path: "/user/orders", icon: <CreditCard className="h-5 w-5" /> },
+    { name: "Referrals", path: "/user/referrals", icon: <Users className="h-5 w-5" /> },
+    { name: "Profile", path: "/user/profile", icon: <User className="h-5 w-5" /> },
+    { name: "News", path: "/user/news", icon: <Bell className="h-5 w-5" /> },
+    { name: "Settings", path: "/user/settings", icon: <Settings className="h-5 w-5" /> },
   ];
   
   if (isAdmin) {
     sidebarLinks.push(
-      { name: "Admin Dashboard", path: "/admin-dashboard", icon: <LayoutDashboard className="h-5 w-5" /> }
+      { name: "Admin Dashboard", path: "/admin", icon: <LayoutDashboard className="h-5 w-5" /> }
     );
   }
   
@@ -206,16 +210,18 @@ const AppLayout = ({ children }: AppLayoutProps) => {
         <main className="flex-1 overflow-auto bg-gray-50">
           {/* Mobile header */}
           <div className="md:hidden flex items-center justify-between p-4 border-b bg-white">
-            <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
-              <Menu className="h-6 w-6" />
-            </Button>
+            <SheetTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={() => setIsMobileMenuOpen(true)}>
+                <Menu className="h-6 w-6" />
+              </Button>
+            </SheetTrigger>
             
             <div className="flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="icon" 
                 className="relative"
-                onClick={() => navigate("/cart")}
+                onClick={() => navigate("/user/cart")}
               >
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
@@ -237,11 +243,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/user/profile")}>
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <DropdownMenuItem onClick={() => navigate("/user/settings")}>
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </DropdownMenuItem>
@@ -271,7 +277,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 variant="ghost" 
                 size="icon" 
                 className="relative"
-                onClick={() => navigate("/cart")}
+                onClick={() => navigate("/user/cart")}
               >
                 <ShoppingCart className="h-5 w-5" />
                 {cartCount > 0 && (
@@ -294,11 +300,11 @@ const AppLayout = ({ children }: AppLayoutProps) => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <DropdownMenuItem onClick={() => navigate("/user/profile")}>
                     <User className="h-4 w-4 mr-2" />
                     Profile
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate("/settings")}>
+                  <DropdownMenuItem onClick={() => navigate("/user/settings")}>
                     <Settings className="h-4 w-4 mr-2" />
                     Settings
                   </DropdownMenuItem>

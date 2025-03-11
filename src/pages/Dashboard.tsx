@@ -1,8 +1,8 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
@@ -65,56 +65,54 @@ const Dashboard = () => {
   }
   
   return (
-    <AppLayout>
-      <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Welcome, {profile?.full_name || user?.email}</h1>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">
-                Complete your profile to get the most out of your Vamna experience.
-              </p>
-              <Button onClick={() => navigate("/profile")}>
-                Update Profile
-              </Button>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p className="text-muted-foreground">Get started with these common actions:</p>
-              <div className="grid grid-cols-2 gap-2">
-                <Button variant="outline" onClick={() => navigate("/shop")}>
-                  Browse Products
-                </Button>
-                <Button variant="outline" onClick={() => navigate("/referrals")}>
-                  Manage Referrals
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-        
-        <div className="mt-8 bg-background border rounded-lg p-6 shadow-sm">
-          <p className="text-xl mb-4">Your Consultant Dashboard</p>
-          <p className="text-muted-foreground">For a more detailed dashboard with sales and team metrics, please visit:</p>
-          <div className="mt-4">
-            <Button onClick={() => navigate("/user-dashboard")} variant="default">
-              Go to Advanced Dashboard
+    <div className="container max-w-7xl mx-auto px-4 lg:px-8 py-8">
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Welcome, {profile?.full_name || user?.email}</h1>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Your Profile</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">
+              Complete your profile to get the most out of your Vamna experience.
+            </p>
+            <Button onClick={() => navigate("/user/profile")}>
+              Update Profile
             </Button>
-          </div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-muted-foreground">Get started with these common actions:</p>
+            <div className="grid grid-cols-2 gap-2">
+              <Button variant="outline" onClick={() => navigate("/user/shop")}>
+                Browse Products
+              </Button>
+              <Button variant="outline" onClick={() => navigate("/user/referrals")}>
+                Manage Referrals
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+      
+      <div className="mt-8 bg-background border rounded-lg p-6 shadow-sm">
+        <p className="text-xl mb-4">Your Consultant Dashboard</p>
+        <p className="text-muted-foreground">For a more detailed dashboard with sales and team metrics, please visit:</p>
+        <div className="mt-4">
+          <Button onClick={() => navigate("/user/user-dashboard")} variant="default">
+            Go to Advanced Dashboard
+          </Button>
         </div>
       </div>
-    </AppLayout>
+    </div>
   );
 };
 
