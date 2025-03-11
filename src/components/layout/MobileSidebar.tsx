@@ -5,6 +5,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { SidebarLinks } from "./SidebarLinks";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import SidebarLogo from "./SidebarLogo";
 
 interface MobileSidebarProps {
   isAdmin: boolean;
@@ -23,10 +24,7 @@ export const MobileSidebar = ({
     <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
       <SheetContent side="left" className="w-64 p-0 bg-black text-white">
         <div className="p-6">
-          <div className="flex items-center">
-            <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
-            <span className="text-xs ml-1 mt-1 text-gray-400">YOUR LASTING BEAUTY</span>
-          </div>
+          <SidebarLogo />
         </div>
         
         <SidebarLinks 

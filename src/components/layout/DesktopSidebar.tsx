@@ -4,6 +4,7 @@ import { LogOut, HelpCircle, Settings } from "lucide-react";
 import { SidebarLinks } from "./SidebarLinks";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import SidebarLogo from "./SidebarLogo";
 
 interface DesktopSidebarProps {
   isAdmin: boolean;
@@ -14,10 +15,7 @@ export const DesktopSidebar = ({ isAdmin, handleSignOut }: DesktopSidebarProps) 
   return (
     <aside className="hidden md:flex fixed left-0 top-0 bottom-0 flex-col w-64 bg-black text-white h-screen overflow-y-auto">
       <div className="p-6">
-        <div className="flex items-center">
-          <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
-          <span className="text-xs ml-1 mt-1 text-gray-400">YOUR LASTING BEAUTY</span>
-        </div>
+        <SidebarLogo />
       </div>
       
       <SidebarLinks isAdmin={isAdmin} />
