@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -24,34 +25,27 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           return;
         }
         
-        // Check if user is admin - first user in the system OR specific email
-        if (user.email === "zonkebonke@gmail.com") {
-          // Grant admin access to this specific email
-          setIsAdmin(true);
-          setLoading(false);
-          return;
-        }
-
-        // Otherwise check if user is the first user in the system
-        const { data: profiles, error: profilesError } = await supabase
-          .from("profiles")
+        // Check if user has admin role in the user_roles table
+        const { data: userRoles, error: rolesError } = await supabase
+          .from("user_roles")
           .select("*")
-          .order("created_at", { ascending: true })
-          .limit(1);
+          .eq("user_id", user.id);
           
-        if (profilesError) {
-          console.error("Error checking admin status:", profilesError);
+        if (rolesError) {
+          console.error("Error checking admin status:", rolesError);
           toast({
             title: "Error checking admin status",
-            description: "Could not verify admin privileges. Redirecting to admin dashboard.",
+            description: "Could not verify admin privileges. Please try again later.",
             variant: "destructive",
           });
-          navigate("/admin-dashboard");
+          navigate("/dashboard");
           return;
         }
         
-        // Check if current user is the first user (admin)
-        if (profiles && profiles.length > 0 && profiles[0].id === user.id) {
+        // Check if the user has an admin role
+        const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+        
+        if (hasAdminRole) {
           setIsAdmin(true);
         } else {
           // Not admin, redirect to user dashboard

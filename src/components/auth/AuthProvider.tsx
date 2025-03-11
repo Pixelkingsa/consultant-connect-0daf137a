@@ -31,20 +31,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       if (data.session) {
         const { data: { user } } = await supabase.auth.getUser();
         
-        // Check if user is admin (using same logic as AdminAuthChecker)
-        if (user && user.email === "zonkebonke@gmail.com") {
-          setIsAdmin(true);
-        } else {
-          // Check if user is the first user in the system
-          const { data: profiles } = await supabase
-            .from("profiles")
+        if (user) {
+          // Check if user has admin role
+          const { data: userRoles } = await supabase
+            .from("user_roles")
             .select("*")
-            .order("created_at", { ascending: true })
-            .limit(1);
+            .eq("user_id", user.id);
             
-          if (profiles && profiles.length > 0 && profiles[0].id === user?.id) {
-            setIsAdmin(true);
-          }
+          const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+          setIsAdmin(hasAdminRole);
         }
       }
       
@@ -60,23 +55,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           }
           
           // Check admin status when logged in
-          const { data: { user } } = await supabase.auth.getUser();
-          
-          if (user && user.email === "zonkebonke@gmail.com") {
-            setIsAdmin(true);
-          } else {
-            // Check if user is the first user in the system
-            const { data: profiles } = await supabase
-              .from("profiles")
+          if (session?.user) {
+            const { data: userRoles } = await supabase
+              .from("user_roles")
               .select("*")
-              .order("created_at", { ascending: true })
-              .limit(1);
+              .eq("user_id", session.user.id);
               
-            if (profiles && profiles.length > 0 && profiles[0].id === user?.id) {
-              setIsAdmin(true);
-            } else {
-              setIsAdmin(false);
-            }
+            const hasAdminRole = userRoles && userRoles.some(role => role.role === "admin");
+            setIsAdmin(hasAdminRole);
           }
         }
       );
