@@ -19,7 +19,7 @@ export const getAdminNavItems = (): NavItem[] => {
     { 
       name: "Dashboard", 
       icon: <LayoutDashboard className="h-5 w-5" />, 
-      path: "/admin" 
+      path: "/admin-dashboard" 
     },
     { 
       name: "Products", 

@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
+import AdminLayout from "@/components/layout/AdminLayout";
 import { type RankFormValues } from "@/components/admin/ranks/RankForm";
 import { RankHeader } from "@/components/admin/ranks/RankHeader";
 import { RankDialog } from "@/components/admin/ranks/RankDialog";
@@ -86,24 +87,26 @@ const CompensationManagement = () => {
   const chartData = prepareChartData(ranks);
 
   return (
-    <div className="space-y-8">
-      <RankHeader openRankDialog={openRankDialog} />
-      
-      <RankDialog 
-        isOpen={isDialogOpen}
-        onOpenChange={setIsDialogOpen}
-        editingRank={editingRank}
-        onSubmit={onSubmit}
-      />
-      
-      <RankDashboard 
-        ranks={ranks}
-        loading={loading}
-        chartData={chartData}
-        onMoveRank={moveRank}
-        onEditRank={openRankDialog}
-      />
-    </div>
+    <AdminLayout>
+      <div className="space-y-8">
+        <RankHeader openRankDialog={openRankDialog} />
+        
+        <RankDialog 
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingRank={editingRank}
+          onSubmit={onSubmit}
+        />
+        
+        <RankDashboard 
+          ranks={ranks}
+          loading={loading}
+          chartData={chartData}
+          onMoveRank={moveRank}
+          onEditRank={openRankDialog}
+        />
+      </div>
+    </AdminLayout>
   );
 };
 

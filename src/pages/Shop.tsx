@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import AppLayout from "@/components/layout/AppLayout";
 import ShopContent from "@/components/shop/ShopContent";
 
 const Shop = () => {
@@ -43,7 +44,11 @@ const Shop = () => {
     );
   }
   
-  return <ShopContent />;
+  return (
+    <AppLayout>
+      <ShopContent />
+    </AppLayout>
+  );
 };
 
 export default Shop;
