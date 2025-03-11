@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Image } from "lucide-react";
 import { Product } from "@/types/product";
 
 interface ProductsTableProps {
@@ -23,6 +23,7 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
       <Table>
         <TableHeader>
           <TableRow>
+            <TableHead className="w-[100px]">Image</TableHead>
             <TableHead>Name</TableHead>
             <TableHead>Category</TableHead>
             <TableHead>Price</TableHead>
@@ -33,13 +34,26 @@ const ProductsTable = ({ products, onEdit, onDelete }: ProductsTableProps) => {
         <TableBody>
           {products.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={5} className="text-center py-8">
+              <TableCell colSpan={6} className="text-center py-8">
                 No products found. Add one to get started!
               </TableCell>
             </TableRow>
           ) : (
             products.map((product) => (
               <TableRow key={product.id}>
+                <TableCell>
+                  {product.image_url ? (
+                    <img 
+                      src={product.image_url} 
+                      alt={product.name}
+                      className="h-12 w-12 object-cover rounded-md"
+                    />
+                  ) : (
+                    <div className="h-12 w-12 bg-muted rounded-md flex items-center justify-center">
+                      <Image className="h-6 w-6 text-muted-foreground" />
+                    </div>
+                  )}
+                </TableCell>
                 <TableCell className="font-medium">{product.name}</TableCell>
                 <TableCell>{product.category}</TableCell>
                 <TableCell>${product.price.toFixed(2)}</TableCell>
