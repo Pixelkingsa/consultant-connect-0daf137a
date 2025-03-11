@@ -42,9 +42,9 @@ const ImageUploadField = ({
       render={({ field: { value, onChange, ...fieldProps } }) => (
         <FormItem>
           <FormLabel>Product Image</FormLabel>
-          <div className="flex items-start gap-4">
+          <div className="flex flex-col gap-4">
             {imagePreview ? (
-              <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
+              <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200">
                 <img 
                   src={imagePreview} 
                   alt="Product preview" 
@@ -52,7 +52,7 @@ const ImageUploadField = ({
                 />
               </div>
             ) : (
-              <div className="w-24 h-24 bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 flex-shrink-0">
+              <div className="w-24 h-24 bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300">
                 <Image className="h-6 w-6 text-gray-400 mb-1" />
                 <p className="text-xs text-gray-500">No image</p>
               </div>
