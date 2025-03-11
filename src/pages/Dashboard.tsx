@@ -1,5 +1,4 @@
-
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -7,31 +6,16 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
-import { useAuth } from "@/components/auth/AuthProvider";
-import { useAuthState } from "@/hooks/use-auth-state";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, userId } = useAuth();
-  const { state: user, updateState: setUser } = useAuthState<any>(null);
-  const { state: profile, updateState: setProfile } = useAuthState<any>(null);
-  const { state: rankInfo, updateState: setRankInfo } = useAuthState<any>(null);
-  const { state: loading, updateState: setLoading } = useAuthState(true);
+  const [user, setUser] = useState<any>(null);
+  const [profile, setProfile] = useState<any>(null);
+  const [rankInfo, setRankInfo] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Always initialize hooks in the same order
-    
-    // Immediately redirect admin users
-    if (isAdmin) {
-      console.log("Admin user detected in Dashboard, redirecting to admin dashboard");
-      navigate("/admin-dashboard", { replace: true });
-      return;
-    }
-    
-    // Log admin status for debugging
-    console.log("Dashboard loaded with auth state:", { isAdmin, userId });
-    
     const checkUser = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -41,7 +25,6 @@ const Dashboard = () => {
           return;
         }
         
-        console.log("User data in Dashboard:", user);
         setUser(user);
         
         // Get user profile with rank information
@@ -71,7 +54,7 @@ const Dashboard = () => {
     };
     
     checkUser();
-  }, [navigate, toast, isAdmin, userId, setUser, setProfile, setRankInfo, setLoading]);
+  }, [navigate, toast]);
   
   if (loading) {
     return (
@@ -79,11 +62,6 @@ const Dashboard = () => {
         <Loader size="lg" text="Loading your dashboard..." />
       </div>
     );
-  }
-  
-  // Additional safety check - don't render for admins
-  if (isAdmin) {
-    return null;
   }
   
   return (

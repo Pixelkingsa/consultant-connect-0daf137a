@@ -1,7 +1,5 @@
 
 import { Routes, Route, Navigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
 import UserDashboard from "@/pages/UserDashboard";
@@ -24,34 +22,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
 import { Loader } from "@/components/ui/loader";
 
 export const AppRoutes = () => {
-  const { isAuthenticated, isAdmin, userId } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [initialized, setInitialized] = useState(false);
-
-  // Handle role-based routing
-  useEffect(() => {
-    console.log(`Current route: ${location.pathname}`);
-    console.log(`Auth status: isAuthenticated=${isAuthenticated}, isAdmin=${isAdmin}, userId=${userId}`);
-    
-    if (isAuthenticated) {
-      if (isAdmin) {
-        // Admin user should be on admin routes
-        if (location.pathname === "/dashboard" || location.pathname === "/user-dashboard") {
-          console.log("Admin user detected, redirecting to admin dashboard");
-          navigate("/admin-dashboard", { replace: true });
-        }
-      } else {
-        // Regular user should not access admin routes
-        if (location.pathname.startsWith("/admin")) {
-          console.log("Regular user detected on admin route, redirecting to user dashboard");
-          navigate("/user-dashboard", { replace: true });
-        }
-      }
-    }
-    
-    setInitialized(true);
-  }, [isAuthenticated, isAdmin, location.pathname, userId, navigate]);
+  const { isAuthenticated, isAdmin } = useAuth();
 
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
@@ -68,36 +39,32 @@ export const AppRoutes = () => {
       {!isAuthenticated && <Navbar />}
       
       <Routes>
-        {/* Root redirect based on auth and admin status */}
         <Route 
           path="/" 
           element={
             isAuthenticated 
               ? (isAdmin 
                   ? <Navigate to="/admin-dashboard" replace /> 
-                  : <Navigate to="/user-dashboard" replace />)
+                  : <Navigate to="/dashboard" replace />)
               : <Navigate to="/auth" replace />
           } 
         />
-
-        {/* Auth route - redirect authenticated users based on role */}
         <Route path="/auth" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <Navigate to="/admin-dashboard" replace /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Auth />
         } />
         
-        {/* Dashboard routes with role-based redirects */}
+        {/* Redirect admin to admin dashboard if they try to access user pages */}
         <Route path="/dashboard" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <Navigate to="/admin-dashboard" replace /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Dashboard />)
             : <Navigate to="/auth" replace />
         } />
-        
         <Route path="/user-dashboard" element={
           isAuthenticated 
             ? (isAdmin 
@@ -106,7 +73,7 @@ export const AppRoutes = () => {
             : <Navigate to="/auth" replace />
         } />
         
-        {/* Regular user routes - accessible by both regular users and admins */}
+        {/* Regular user routes */}
         <Route path="/shop" element={isAuthenticated ? <Shop /> : <Navigate to="/auth" replace />} />
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/auth" replace />} />
         <Route path="/orders" element={isAuthenticated ? <Orders /> : <Navigate to="/auth" replace />} />
@@ -120,46 +87,46 @@ export const AppRoutes = () => {
           isAuthenticated 
             ? (isAdmin 
                 ? <AdminDashboard /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/products" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <ProductsManagement /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/orders" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <OrdersManagement /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/customers" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <CustomersManagement /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/compensation" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <CompensationManagement /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         <Route path="/admin/withdrawals" element={
           isAuthenticated 
             ? (isAdmin 
                 ? <WithdrawalsManagement /> 
-                : <Navigate to="/user-dashboard" replace />)
+                : <Navigate to="/dashboard" replace />)
             : <Navigate to="/auth" replace />
         } />
         
-        {/* Catch-all route */}
+        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>

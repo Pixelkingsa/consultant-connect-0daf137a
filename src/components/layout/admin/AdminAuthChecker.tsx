@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader } from "@/components/ui/loader";
-import { Button } from "@/components/ui/button";
 
 interface AdminAuthCheckerProps {
   children: (isAdmin: boolean) => React.ReactNode;
@@ -15,7 +13,6 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
   const { toast } = useToast();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const checkAdminAccess = async () => {
@@ -27,27 +24,34 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
           return;
         }
         
-        // Check if user has admin role in the user_roles table
-        const { data: userRoles, error: rolesError } = await supabase
-          .from("user_roles")
-          .select("*, roles(*)")
-          .eq("user_id", user.id);
+        // Check if user is admin - first user in the system OR specific email
+        if (user.email === "zonkebonke@gmail.com") {
+          // Grant admin access to this specific email
+          setIsAdmin(true);
+          setLoading(false);
+          return;
+        }
+
+        // Otherwise check if user is the first user in the system
+        const { data: profiles, error: profilesError } = await supabase
+          .from("profiles")
+          .select("*")
+          .order("created_at", { ascending: true })
+          .limit(1);
           
-        if (rolesError) {
-          console.error("Error checking admin status:", rolesError);
+        if (profilesError) {
+          console.error("Error checking admin status:", profilesError);
           toast({
             title: "Error checking admin status",
-            description: "Could not verify admin privileges. Please try again later.",
+            description: "Could not verify admin privileges. Redirecting to admin dashboard.",
             variant: "destructive",
           });
-          navigate("/dashboard");
+          navigate("/admin-dashboard");
           return;
         }
         
-        // Check if the user has an admin role
-        const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
-        
-        if (hasAdminRole) {
+        // Check if current user is the first user (admin)
+        if (profiles && profiles.length > 0 && profiles[0].id === user.id) {
           setIsAdmin(true);
         } else {
           // Not admin, redirect to user dashboard
@@ -69,67 +73,6 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
     checkAdminAccess();
   }, [navigate, toast]);
   
-  const handleRemoveAdminRole = async () => {
-    try {
-      setDeleting(true);
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        throw new Error("Could not verify current user");
-      }
-      
-      console.log("Removing admin role for user:", user.id);
-      
-      // Find the admin role record for the current user
-      const { data: userRoles, error: rolesError } = await supabase
-        .from("user_roles")
-        .select("id")
-        .eq("user_id", user.id)
-        .eq("role_id", 1); // Assuming 1 is the admin role ID
-        
-      if (rolesError) {
-        console.error("Error finding admin role:", rolesError);
-        throw new Error("Could not find admin role");
-      }
-      
-      console.log("Found user roles:", userRoles);
-      
-      if (!userRoles || userRoles.length === 0) {
-        throw new Error("No admin role found for current user");
-      }
-      
-      // Delete the admin role assignment for this user
-      const adminRoleId = userRoles[0].id;
-      console.log("Deleting user role with ID:", adminRoleId);
-      
-      const { error: deleteError } = await supabase
-        .from("user_roles")
-        .delete()
-        .eq("id", adminRoleId);
-        
-      if (deleteError) {
-        console.error("Error deleting role:", deleteError);
-        throw new Error("Failed to remove admin role");
-      }
-      
-      toast({
-        title: "Admin Access Removed",
-        description: "You have successfully removed your admin privileges.",
-      });
-      
-      navigate("/dashboard");
-    } catch (error) {
-      console.error("Error removing admin role:", error);
-      toast({
-        title: "Error Removing Admin Role",
-        description: error.message || "An unexpected error occurred.",
-        variant: "destructive",
-      });
-    } finally {
-      setDeleting(false);
-    }
-  };
-  
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -138,28 +81,7 @@ const AdminAuthChecker = ({ children }: AdminAuthCheckerProps) => {
     );
   }
   
-  return (
-    <>
-      {isAdmin && (
-        <div className="bg-red-50 p-4 mb-4 rounded-md border border-red-200">
-          <div className="flex flex-row items-center justify-between">
-            <div>
-              <h3 className="font-medium text-red-800">Admin Access</h3>
-              <p className="text-sm text-red-700">You currently have administrator privileges.</p>
-            </div>
-            <Button 
-              variant="destructive" 
-              onClick={handleRemoveAdminRole}
-              disabled={deleting}
-            >
-              {deleting ? "Removing..." : "Remove Admin Access"}
-            </Button>
-          </div>
-        </div>
-      )}
-      {children(isAdmin)}
-    </>
-  );
+  return <>{children(isAdmin)}</>;
 };
 
 export default AdminAuthChecker;
