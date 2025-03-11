@@ -63,25 +63,28 @@ const TopNav = ({ userMenuItems, onSignOut, profile, cartCount }: TopNavProps) =
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
             
-            {userMenuItems.map((item) => (
-              item.name !== "Logout" ? (
-                <DropdownMenuItem key={item.href} asChild>
-                  <Link to={item.href} className="flex items-center gap-2 cursor-pointer">
-                    {item.icon}
+            {userMenuItems.map((item) => {
+              const IconComponent = item.icon;
+              return (
+                item.name !== "Logout" ? (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link to={item.href} className="flex items-center gap-2 cursor-pointer">
+                      <IconComponent className="h-4 w-4" />
+                      {item.name}
+                    </Link>
+                  </DropdownMenuItem>
+                ) : (
+                  <DropdownMenuItem 
+                    key={item.href} 
+                    className="text-red-500 hover:text-red-600 cursor-pointer"
+                    onClick={() => onSignOut()}
+                  >
+                    <IconComponent className="h-4 w-4" />
                     {item.name}
-                  </Link>
-                </DropdownMenuItem>
-              ) : (
-                <DropdownMenuItem 
-                  key={item.href} 
-                  className="text-red-500 hover:text-red-600 cursor-pointer"
-                  onClick={() => onSignOut()}
-                >
-                  {item.icon}
-                  {item.name}
-                </DropdownMenuItem>
-              )
-            ))}
+                  </DropdownMenuItem>
+                )
+              );
+            })}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
