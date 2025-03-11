@@ -39,6 +39,7 @@ export const AppRoutes = () => {
       {!isAuthenticated && <Navbar />}
       
       <Routes>
+        {/* Root redirect based on auth and admin status */}
         <Route 
           path="/" 
           element={
@@ -49,6 +50,8 @@ export const AppRoutes = () => {
               : <Navigate to="/auth" replace />
           } 
         />
+
+        {/* Auth route - redirect authenticated users based on role */}
         <Route path="/auth" element={
           isAuthenticated 
             ? (isAdmin 
@@ -57,7 +60,7 @@ export const AppRoutes = () => {
             : <Auth />
         } />
         
-        {/* Redirect admin to admin dashboard if they try to access user pages */}
+        {/* Dashboard routes with role-based redirects */}
         <Route path="/dashboard" element={
           isAuthenticated 
             ? (isAdmin 
@@ -65,6 +68,7 @@ export const AppRoutes = () => {
                 : <Dashboard />)
             : <Navigate to="/auth" replace />
         } />
+        
         <Route path="/user-dashboard" element={
           isAuthenticated 
             ? (isAdmin 
@@ -73,7 +77,7 @@ export const AppRoutes = () => {
             : <Navigate to="/auth" replace />
         } />
         
-        {/* Regular user routes */}
+        {/* Regular user routes - accessible by both regular users and admins */}
         <Route path="/shop" element={isAuthenticated ? <Shop /> : <Navigate to="/auth" replace />} />
         <Route path="/profile" element={isAuthenticated ? <Profile /> : <Navigate to="/auth" replace />} />
         <Route path="/orders" element={isAuthenticated ? <Orders /> : <Navigate to="/auth" replace />} />
@@ -126,7 +130,7 @@ export const AppRoutes = () => {
             : <Navigate to="/auth" replace />
         } />
         
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+        {/* Catch-all route */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </>
