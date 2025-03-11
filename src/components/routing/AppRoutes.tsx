@@ -1,4 +1,3 @@
-
 import { Routes, Route, Navigate } from "react-router-dom";
 import Auth from "@/pages/Auth";
 import Dashboard from "@/pages/Dashboard";
@@ -20,9 +19,13 @@ import NotFound from "@/pages/NotFound";
 import Navbar from "@/components/Navbar";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { Loader } from "@/components/ui/loader";
+import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 
 export const AppRoutes = () => {
-  const { isAuthenticated, isAdmin } = useAuth();
+  const { isAuthenticated, isAdmin, userId } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Show loading state while checking authentication
   if (isAuthenticated === null) {
@@ -32,6 +35,19 @@ export const AppRoutes = () => {
       </div>
     );
   }
+
+  // Log current route and auth status for debugging
+  useEffect(() => {
+    console.log(`Current route: ${location.pathname}`);
+    console.log(`Auth status: isAuthenticated=${isAuthenticated}, isAdmin=${isAdmin}, userId=${userId}`);
+    
+    // Force redirect admin to admin dashboard if on user dashboard
+    if (isAuthenticated && isAdmin && 
+        (location.pathname === "/dashboard" || location.pathname === "/user-dashboard")) {
+      console.log("Admin detected on user dashboard, redirecting to admin dashboard");
+      navigate("/admin-dashboard", { replace: true });
+    }
+  }, [isAuthenticated, isAdmin, location.pathname, userId, navigate]);
 
   return (
     <>

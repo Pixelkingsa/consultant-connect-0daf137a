@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,16 +7,28 @@ import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
+import { useAuth } from "@/components/auth/AuthProvider";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isAdmin, userId } = useAuth();
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [rankInfo, setRankInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Log admin status for debugging
+    console.log("Dashboard loaded with auth state:", { isAdmin, userId });
+    
+    // Redirect admin users who somehow reached this page
+    if (isAdmin) {
+      console.log("Admin user detected in Dashboard, redirecting to admin dashboard");
+      navigate("/admin-dashboard", { replace: true });
+      return;
+    }
+    
     const checkUser = async () => {
       try {
         const { data: { user }, error } = await supabase.auth.getUser();
@@ -25,6 +38,7 @@ const Dashboard = () => {
           return;
         }
         
+        console.log("User data in Dashboard:", user);
         setUser(user);
         
         // Get user profile with rank information
@@ -54,7 +68,7 @@ const Dashboard = () => {
     };
     
     checkUser();
-  }, [navigate, toast]);
+  }, [navigate, toast, isAdmin, userId]);
   
   if (loading) {
     return (

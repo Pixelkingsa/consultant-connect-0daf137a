@@ -1,15 +1,18 @@
 
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type AuthContextType = {
   isAuthenticated: boolean | null;
   isAdmin: boolean;
+  userId: string | null;
 };
 
 const AuthContext = createContext<AuthContextType>({
   isAuthenticated: null,
   isAdmin: false,
+  userId: null,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -21,48 +24,100 @@ interface AuthProviderProps {
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const checkAdminStatus = async (userId: string) => {
+    try {
+      // Use the direct query to user_roles table with a join to roles
+      const { data: userRoles, error } = await supabase
+        .from("user_roles")
+        .select("*, roles(*)")
+        .eq("user_id", userId);
+            
+      console.log("User roles data:", userRoles);
+      console.log("User roles error:", error);
+      
+      if (error) {
+        console.error("Error checking admin status:", error);
+        return false;
+      }
+      
+      // Check if the user has an admin role
+      const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
+      console.log("Has admin role:", hasAdminRole);
+      
+      return hasAdminRole || false;
+    } catch (err) {
+      console.error("Exception checking admin status:", err);
+      return false;
+    }
+  };
 
   useEffect(() => {
     // Check if user is authenticated
     const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      setIsAuthenticated(!!data.session);
-      
-      if (data.session) {
-        const { data: { user } } = await supabase.auth.getUser();
+      try {
+        const { data, error } = await supabase.auth.getSession();
         
-        if (user) {
-          // Check if user has admin role
-          const { data: userRoles } = await supabase
-            .from("user_roles")
-            .select("*, roles!inner(*)")
-            .eq("user_id", user.id);
-            
-          const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
-          setIsAdmin(hasAdminRole);
+        console.log("Session data:", data);
+        console.log("Session error:", error);
+        
+        const sessionExists = !!data.session;
+        setIsAuthenticated(sessionExists);
+        
+        if (data.session) {
+          const currentUserId = data.session.user.id;
+          setUserId(currentUserId);
+          
+          // Check admin status and update state
+          const adminStatus = await checkAdminStatus(currentUserId);
+          setIsAdmin(adminStatus);
+          
+          console.log(`User ${currentUserId} authenticated, admin status: ${adminStatus}`);
+        } else {
+          setUserId(null);
+          setIsAdmin(false);
         }
+      } catch (err) {
+        console.error("Error in auth check:", err);
+        setIsAuthenticated(false);
+        setUserId(null);
+        setIsAdmin(false);
       }
       
       // Set up auth state listener
       const { data: authListener } = supabase.auth.onAuthStateChange(
         async (event, session) => {
+          console.log("Auth state change event:", event);
+          console.log("New session:", session);
+          
           setIsAuthenticated(!!session);
           
-          // Reset admin status when logged out
+          // Reset user info when logged out
           if (!session) {
+            setUserId(null);
             setIsAdmin(false);
             return;
           }
           
-          // Check admin status when logged in
+          // Set user ID and check admin status when logged in
           if (session?.user) {
-            const { data: userRoles } = await supabase
-              .from("user_roles")
-              .select("*, roles!inner(*)")
-              .eq("user_id", session.user.id);
-              
-            const hasAdminRole = userRoles && userRoles.some(role => role.roles?.role_name === "admin");
-            setIsAdmin(hasAdminRole);
+            const currentUserId = session.user.id;
+            setUserId(currentUserId);
+            
+            // Check admin status and update state
+            const adminStatus = await checkAdminStatus(currentUserId);
+            setIsAdmin(adminStatus);
+            
+            console.log(`User ${currentUserId} state changed, admin status: ${adminStatus}`);
+            
+            if (adminStatus) {
+              toast({
+                title: "Admin access granted",
+                description: "You're logged in with administrator privileges.",
+              });
+            }
           }
         }
       );
@@ -73,10 +128,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     };
     
     checkAuth();
-  }, []);
+  }, [toast]);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isAdmin }}>
+    <AuthContext.Provider value={{ isAuthenticated, isAdmin, userId }}>
       {children}
     </AuthContext.Provider>
   );
