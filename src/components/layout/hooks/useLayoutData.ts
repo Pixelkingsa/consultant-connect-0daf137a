@@ -1,10 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { 
-  Home, 
   ShoppingBag, 
   CreditCard, 
   User, 
@@ -101,7 +99,6 @@ export const useLayoutData = () => {
   const getSidebarLinks = (): NavItem[] => {
     const links: NavItem[] = [
       { name: "User Dashboard", path: "/user-dashboard", icon: LayoutDashboard },
-      { name: "Home", path: "/dashboard", icon: Home },
       { name: "Shop", path: "/shop", icon: Package },
       { name: "Orders", path: "/orders", icon: CreditCard },
       { name: "Referrals", path: "/referrals", icon: Users },
