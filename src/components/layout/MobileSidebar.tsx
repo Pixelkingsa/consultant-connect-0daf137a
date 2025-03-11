@@ -49,7 +49,7 @@ export const MobileSidebar = ({
           <Link
             to="/help-support"
             className={cn(
-              "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-gray-300 hover:bg-white/5 hover:text-white mt-[6px]"
+              "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-gray-300 hover:bg-white/5 hover:text-white mt-[4px]"
             )}
             onClick={() => setIsMobileMenuOpen(false)}
           >
@@ -57,7 +57,7 @@ export const MobileSidebar = ({
             Help & Support
           </Link>
           
-          <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5 mt-[6px]" onClick={handleSignOut}>
+          <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5 mt-[4px]" onClick={handleSignOut}>
             <LogOut className="h-4 w-4 mr-2" />
             Logout
           </Button>
