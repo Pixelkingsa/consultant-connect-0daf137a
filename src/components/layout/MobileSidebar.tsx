@@ -24,7 +24,11 @@ export const MobileSidebar = ({
       <SheetContent side="left" className="w-64 p-0 bg-black text-white">
         <div className="p-6">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold uppercase tracking-wider text-white">VAMNA</h1>
+            <img 
+              src="/lovable-uploads/fee0da40-393a-4a41-94d1-bd5474c288c9.png" 
+              alt="VAMNA Logo" 
+              className="h-8 w-auto" 
+            />
           </div>
         </div>
         
