@@ -27,7 +27,7 @@ const AdminSidebar = ({ navItems, sidebarOpen }: AdminSidebarProps) => {
             <img 
               src="/lovable-uploads/950bf148-002f-4867-9bb3-8a24e2e962e1.png" 
               alt="Vamna Logo" 
-              className="h-8 w-auto"
+              className="h-10 w-auto" 
             />
           </div>
         </div>
