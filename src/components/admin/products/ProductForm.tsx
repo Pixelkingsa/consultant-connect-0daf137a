@@ -15,7 +15,7 @@ import {
 import { DialogFooter } from "@/components/ui/dialog";
 import { ProductFormValues, productSchema, Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
-import { Image } from "lucide-react";
+import { Image, Upload } from "lucide-react";
 
 interface ProductFormProps {
   editingProduct: Product | null;
@@ -186,29 +186,39 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
           render={({ field: { value, onChange, ...fieldProps } }) => (
             <FormItem>
               <FormLabel>Product Image</FormLabel>
-              <div className="flex flex-col space-y-2">
-                {imagePreview && (
-                  <div className="relative w-full h-40 bg-gray-100 rounded-md overflow-hidden">
-                    <img 
-                      src={imagePreview} 
-                      alt="Product preview" 
-                      className="w-full h-full object-contain" 
-                    />
+              <div className="flex flex-col space-y-4">
+                {imagePreview ? (
+                  <div className="relative rounded-md overflow-hidden border border-gray-200">
+                    <div className="aspect-video w-full bg-gray-50 flex items-center justify-center">
+                      <img 
+                        src={imagePreview} 
+                        alt="Product preview" 
+                        className="max-h-[200px] max-w-full object-contain" 
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 p-4">
+                    <Image className="h-10 w-10 text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">No image selected</p>
+                    <p className="text-xs text-gray-400 mt-1">Upload a product image to preview it here</p>
                   </div>
                 )}
                 <FormControl>
                   <div className="flex items-center space-x-2">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      className="flex-1"
-                      onChange={handleImageChange}
-                      {...fieldProps}
-                    />
+                    <div className="relative w-full">
+                      <Input
+                        type="file"
+                        accept="image/*"
+                        className="cursor-pointer"
+                        onChange={handleImageChange}
+                        {...fieldProps}
+                      />
+                    </div>
                   </div>
                 </FormControl>
                 {editingProduct?.image_url && !imagePreview && (
-                  <div className="text-sm text-muted-foreground">
+                  <div className="text-sm text-muted-foreground mt-2">
                     Current image: {editingProduct.image_url}
                   </div>
                 )}
