@@ -68,7 +68,7 @@ export function useReferrals() {
         // Get referred users (downline)
         const { data: referredData, error: referredError } = await supabase
           .from("profiles")
-          .select("id, full_name, email, created_at, status")
+          .select("id, full_name, created_at, status, upline_id")
           .eq("upline_id", user.id);
           
         if (!referredError && referredData) {
@@ -76,7 +76,7 @@ export function useReferrals() {
           const mappedReferrals = referredData.map(ref => ({
             id: ref.id,
             name: ref.full_name || "Anonymous User",
-            email: ref.email ? `${ref.email.substring(0, 2)}****@${ref.email.split('@')[1]}` : "****@example.com", // Privacy - partial email
+            email: `user${ref.id.substring(0, 4)}@example.com`, // Placeholder email since we don't have access to email
             date: ref.created_at,
             status: ref.status || "active" // Default to active if not specified
           }));

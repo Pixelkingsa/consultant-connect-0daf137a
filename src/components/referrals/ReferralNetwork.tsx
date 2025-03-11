@@ -1,7 +1,7 @@
 
 import { useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, GitBranch } from "lucide-react";
+import { User, GitBranch, UserPlus } from "lucide-react";
 
 interface ReferredUser {
   id: string;
@@ -22,6 +22,34 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
   // Group users by generation level (assuming all are direct referrals for now)
   const directReferrals = referredUsers.slice(0, Math.min(5, referredUsers.length));
   
+  // Generate placeholder referrals when no real data is available
+  const placeholderReferrals = referredUsers.length === 0 ? [
+    {
+      id: "placeholder1",
+      name: "Jane Smith",
+      email: "j****@example.com",
+      date: new Date().toISOString(),
+      status: "active"
+    },
+    {
+      id: "placeholder2",
+      name: "John Doe",
+      email: "j****@example.com",
+      date: new Date().toISOString(),
+      status: "active"
+    },
+    {
+      id: "placeholder3",
+      name: "Alice Johnson",
+      email: "a****@example.com",
+      date: new Date().toISOString(), 
+      status: "inactive"
+    }
+  ] : [];
+  
+  // Use real referrals if available, otherwise use placeholders but with visual indicator
+  const displayReferrals = referredUsers.length > 0 ? directReferrals : placeholderReferrals;
+  
   return (
     <div className="mb-8">
       <Card className="border rounded-lg overflow-hidden shadow-sm">
@@ -38,47 +66,53 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 <p className="text-xs text-muted-foreground">{profile?.full_name || 'Team Leader'}</p>
               </div>
               
-              {/* Connecting lines - only show if there are referrals */}
-              {referredUsers.length > 0 && (
-                <div className="absolute top-16 left-1/2 w-0.5 h-24 bg-purple-200 transform -translate-x-1/2"></div>
-              )}
+              {/* Connecting lines - show if there are referrals or placeholders */}
+              <div className="absolute top-16 left-1/2 w-0.5 h-24 bg-purple-200 transform -translate-x-1/2"></div>
             </div>
             
-            {/* First level - Direct referrals with clear connection lines */}
-            {referredUsers.length > 0 ? (
-              <div className="absolute top-[160px] left-1/2 transform -translate-x-1/2">
-                <div className="flex justify-center gap-24">
-                  {directReferrals.map((user, index) => (
-                    <div key={user.id} className="flex flex-col items-center relative">
-                      {/* Horizontal connection line to separate users */}
-                      {index > 0 && (
-                        <div className="absolute top-6 left-[-120px] w-[120px] h-0.5 bg-purple-200"></div>
-                      )}
-                      
-                      {/* User node */}
-                      <div className="w-12 h-12 bg-purple-500 rounded-full flex items-center justify-center shadow-md border-2 border-white">
-                        <User className="h-6 w-6 text-white" />
-                      </div>
-                      <div className="mt-2 text-center">
-                        <p className="font-medium text-xs whitespace-nowrap">{user.name}</p>
-                        <p className="text-[10px] text-muted-foreground">Joined {new Date(user.date).toLocaleDateString()}</p>
-                        <div className={`text-[10px] mt-1 font-medium px-2 py-0.5 rounded-full inline-block ${
-                          user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                        }`}>
-                          {user.status === 'active' ? 'Active' : 'Inactive'}
-                        </div>
+            {/* Referral Display - showing real or placeholder referrals */}
+            <div className="absolute top-[160px] left-1/2 transform -translate-x-1/2">
+              <div className="flex justify-center" style={{ gap: displayReferrals.length > 1 ? '7rem' : '0' }}>
+                {displayReferrals.map((user, index) => (
+                  <div key={user.id} className="flex flex-col items-center relative">
+                    {/* Horizontal connection line to separate users */}
+                    {index > 0 && (
+                      <div className="absolute top-6 right-[calc(100%+0.5rem)] w-[7rem] h-0.5 bg-purple-200"></div>
+                    )}
+                    
+                    {/* User node with proper styling */}
+                    <div className={`w-12 h-12 ${referredUsers.length === 0 ? 'bg-purple-400' : 'bg-purple-500'} 
+                                   rounded-full flex items-center justify-center shadow-md border-2 border-white
+                                   ${referredUsers.length === 0 ? 'border-dashed' : ''}`}>
+                      <User className="h-6 w-6 text-white" />
+                    </div>
+                    <div className="mt-2 text-center">
+                      <p className="font-medium text-xs whitespace-nowrap">{user.name}</p>
+                      <p className="text-[10px] text-muted-foreground">
+                        {referredUsers.length === 0 ? 'Example Referral' : `Joined ${new Date(user.date).toLocaleDateString()}`}
+                      </p>
+                      <div className={`text-[10px] mt-1 font-medium px-2 py-0.5 rounded-full inline-block ${
+                        user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                      }`}>
+                        {user.status === 'active' ? 'Active' : 'Inactive'}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  </div>
+                ))}
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full">
-                <div className="p-4 rounded-full bg-purple-100">
-                  <GitBranch className="h-8 w-8 text-purple-500" />
+            </div>
+            
+            {/* Empty state - only show when no referrals and not showing placeholders */}
+            {referredUsers.length === 0 && (
+              <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 text-center opacity-80">
+                <div className="flex items-center justify-center mb-3">
+                  <UserPlus className="h-5 w-5 text-purple-500 mr-1" />
+                  <span className="text-sm font-medium text-purple-700">These are placeholder examples</span>
                 </div>
-                <h3 className="mt-4 text-lg font-medium text-gray-700">No referrals yet</h3>
-                <p className="mt-1 text-sm text-gray-500">Share your referral code to start building your network</p>
+                <p className="text-xs text-gray-500 max-w-xs">
+                  Share your referral code to start building your real network. 
+                  Your referrals will appear connected to you in this visualization.
+                </p>
               </div>
             )}
             
