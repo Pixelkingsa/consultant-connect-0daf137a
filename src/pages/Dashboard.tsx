@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,17 +8,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader } from "@/components/ui/loader";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAdmin, userId } = useAuth();
-  const [user, setUser] = useState<any>(null);
-  const [profile, setProfile] = useState<any>(null);
-  const [rankInfo, setRankInfo] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const { state: user, updateState: setUser } = useAuthState<any>(null);
+  const { state: profile, updateState: setProfile } = useAuthState<any>(null);
+  const { state: rankInfo, updateState: setRankInfo } = useAuthState<any>(null);
+  const { state: loading, updateState: setLoading } = useAuthState(true);
 
   useEffect(() => {
+    // Always initialize hooks in the same order
+    
     // Immediately redirect admin users
     if (isAdmin) {
       console.log("Admin user detected in Dashboard, redirecting to admin dashboard");
@@ -68,7 +71,7 @@ const Dashboard = () => {
     };
     
     checkUser();
-  }, [navigate, toast, isAdmin, userId]);
+  }, [navigate, toast, isAdmin, userId, setUser, setProfile, setRankInfo, setLoading]);
   
   if (loading) {
     return (

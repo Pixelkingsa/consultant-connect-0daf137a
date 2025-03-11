@@ -1,18 +1,18 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import ShopContent from "@/components/shop/ShopContent";
 import { Loader } from "@/components/ui/loader";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 const Shop = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAuthenticated } = useAuth();
-  const [loading, setLoading] = useState(true);
+  const { state: loading, updateState: setLoading } = useAuthState(true);
 
   useEffect(() => {
     // Check if user is authenticated
@@ -27,7 +27,7 @@ const Shop = () => {
     }, 500);
 
     return () => clearTimeout(timer);
-  }, [navigate, isAuthenticated]);
+  }, [navigate, isAuthenticated, setLoading]);
   
   if (loading) {
     return (

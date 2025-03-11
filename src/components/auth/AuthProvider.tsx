@@ -1,7 +1,8 @@
 
-import { useState, useEffect, createContext, useContext, ReactNode } from "react";
+import { useEffect, createContext, useContext, ReactNode } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 type AuthContextType = {
   isAuthenticated: boolean | null;
@@ -22,9 +23,10 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  // Use our consistent hook pattern instead of plain useState
+  const { state: isAuthenticated, updateState: setIsAuthenticated } = useAuthState<boolean | null>(null);
+  const { state: isAdmin, updateState: setIsAdmin } = useAuthState<boolean>(false);
+  const { state: userId, updateState: setUserId } = useAuthState<string | null>(null);
   const { toast } = useToast();
 
   // Function to check admin status directly from the database
@@ -45,9 +47,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return false;
       }
       
-      const isAdmin = !!data;
-      console.log("Admin check result:", isAdmin, "data:", data);
-      return isAdmin;
+      const hasAdminRole = !!data;
+      console.log("Admin check result:", hasAdminRole, "data:", data);
+      return hasAdminRole;
     } catch (err) {
       console.error("Exception in admin status check:", err);
       return false;
@@ -143,7 +145,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [toast]);
+  }, [toast, setIsAuthenticated, setIsAdmin, setUserId]);
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, isAdmin, userId }}>

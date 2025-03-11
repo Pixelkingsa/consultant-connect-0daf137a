@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import DesktopSidebar from "./sidebar/DesktopSidebar";
@@ -9,6 +9,7 @@ import DesktopHeader from "./header/DesktopHeader";
 import { useSidebarLinks } from "./hooks/useSidebarLinks";
 import { Loader } from "@/components/ui/loader";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { useAuthState } from "@/hooks/use-auth-state";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -17,15 +18,17 @@ interface AppLayoutProps {
 const AppLayout = ({ children }: AppLayoutProps) => {
   const navigate = useNavigate();
   const { isAuthenticated, isAdmin } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const [user, setUser] = useState<any>(null);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { state: profile, updateState: setProfile } = useAuthState<any>(null);
+  const { state: user, updateState: setUser } = useAuthState<any>(null);
+  const { state: isMobileMenuOpen, updateState: setIsMobileMenuOpen } = useAuthState(false);
+  const { state: cartCount, updateState: setCartCount } = useAuthState(0);
+  const { state: loading, updateState: setLoading } = useAuthState(true);
   
   const sidebarLinks = useSidebarLinks(isAdmin);
   
   useEffect(() => {
+    // Always initialize all hooks regardless of conditions
+    
     // Redirect if not authenticated
     if (isAuthenticated === false) {
       navigate("/auth");
@@ -77,7 +80,7 @@ const AppLayout = ({ children }: AppLayoutProps) => {
     };
     
     fetchUserData();
-  }, [navigate, isAuthenticated]);
+  }, [navigate, isAuthenticated, setUser, setProfile, setCartCount, setLoading]);
   
   const handleSignOut = async () => {
     await supabase.auth.signOut();
