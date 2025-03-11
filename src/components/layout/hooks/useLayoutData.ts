@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,16 +12,10 @@ import {
   LayoutDashboard,
   Users,
   Bell,
-  LifeBuoy
+  LifeBuoy,
+  Package
 } from "lucide-react";
 import { NavItem } from "../types";
-
-export interface NavItem {
-  name: string;
-  href: string;
-  icon: React.ComponentType;
-  isActive?: boolean;
-}
 
 export const useLayoutData = () => {
   const navigate = useNavigate();
@@ -104,98 +97,24 @@ export const useLayoutData = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
-  const getNavItems = (currentPath: string): NavItem[] => {
-    return [
-      {
-        name: "Home",
-        href: "/dashboard",
-        icon: Home,
-        isActive: currentPath === "/dashboard"
-      },
-      {
-        name: "Shop",
-        href: "/shop",
-        icon: ShoppingBag,
-        isActive: currentPath === "/shop"
-      },
-      {
-        name: "Orders",
-        href: "/orders",
-        icon: CreditCard,
-        isActive: currentPath === "/orders"
-      },
-      {
-        name: "Referrals",
-        href: "/referrals",
-        icon: Users,
-        isActive: currentPath === "/referrals"
-      },
-      {
-        name: "News",
-        href: "/news",
-        icon: Bell,
-        isActive: currentPath === "/news"
-      },
-      {
-        name: "Dashboard",
-        href: "/user-dashboard",
-        icon: LayoutDashboard,
-        isActive: currentPath === "/user-dashboard"
-      }
-    ];
-  };
-
-  const getUserMenuItems = (currentPath: string): NavItem[] => {
-    const items: NavItem[] = [
-      {
-        name: "Profile",
-        href: "/profile",
-        icon: User,
-        isActive: currentPath === "/profile"
-      },
-      {
-        name: "Settings",
-        href: "/settings",
-        icon: Settings,
-        isActive: currentPath === "/settings"
-      },
-      {
-        name: "Help",
-        href: "/help",
-        icon: LifeBuoy,
-        isActive: currentPath === "/help"
-      }
-    ];
-
-    if (isAdmin) {
-      items.push({
-        name: "Admin",
-        href: "/admin-dashboard",
-        icon: LayoutDashboard,
-        isActive: currentPath.startsWith("/admin")
-      });
-    }
-
-    items.push({
-      name: "Logout",
-      href: "#",
-      icon: LogOut
-    });
-
-    return items;
-  };
-
-  // Generate sidebar links for the current location
+  // Define sidebar links using the proper NavItem type
   const getSidebarLinks = (): NavItem[] => {
-    const currentPath = location.pathname;
-    const links = getNavItems(currentPath);
+    const links: NavItem[] = [
+      { name: "User Dashboard", path: "/user-dashboard", icon: LayoutDashboard },
+      { name: "Home", path: "/dashboard", icon: Home },
+      { name: "Shop", path: "/shop", icon: Package },
+      { name: "Orders", path: "/orders", icon: CreditCard },
+      { name: "Referrals", path: "/referrals", icon: Users },
+      { name: "Profile", path: "/profile", icon: User },
+      { name: "News", path: "/news", icon: Bell },
+      { name: "Settings", path: "/settings", icon: Settings }
+    ];
     
-    // Add logout at the end
-    links.push({
-      name: "Logout",
-      href: "#",
-      icon: LogOut
-    });
+    if (isAdmin) {
+      links.push(
+        { name: "Admin Dashboard", path: "/admin-dashboard", icon: LayoutDashboard }
+      );
+    }
     
     return links;
   };
@@ -210,8 +129,6 @@ export const useLayoutData = () => {
     loading,
     handleSignOut,
     toggleMobileMenu,
-    getNavItems,
-    getUserMenuItems,
     sidebarLinks: getSidebarLinks()
   };
 };
