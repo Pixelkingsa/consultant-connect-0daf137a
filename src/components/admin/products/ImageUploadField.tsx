@@ -42,44 +42,40 @@ const ImageUploadField = ({
       render={({ field: { value, onChange, ...fieldProps } }) => (
         <FormItem>
           <FormLabel>Product Image</FormLabel>
-          <div className="flex flex-col space-y-4">
-            {imagePreview ? (
-              <div className="relative rounded-md overflow-hidden border border-gray-200">
-                <div className="aspect-video w-full bg-gray-50 flex items-center justify-center">
-                  <img 
-                    src={imagePreview} 
-                    alt="Product preview" 
-                    className="max-h-[200px] max-w-full object-contain" 
-                  />
+          <div className="flex space-x-4 items-start">
+            <div className="flex-1">
+              <FormControl>
+                <Input
+                  type="file"
+                  accept="image/*"
+                  className="cursor-pointer"
+                  onChange={handleImageChange}
+                  {...fieldProps}
+                />
+              </FormControl>
+              {editingProduct?.image_url && !imagePreview && (
+                <div className="text-sm text-muted-foreground mt-2">
+                  Current image: {editingProduct.image_url}
                 </div>
+              )}
+            </div>
+            
+            {imagePreview ? (
+              <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
+                <img 
+                  src={imagePreview} 
+                  alt="Product preview" 
+                  className="w-full h-full object-cover" 
+                />
               </div>
             ) : (
-              <div className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 p-4">
-                <Image className="h-10 w-10 text-gray-400 mb-2" />
-                <p className="text-sm text-gray-500">No image selected</p>
-                <p className="text-xs text-gray-400 mt-1">Upload a product image to preview it here</p>
+              <div className="w-24 h-24 bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 flex-shrink-0">
+                <Image className="h-6 w-6 text-gray-400 mb-1" />
+                <p className="text-xs text-gray-500">No image</p>
               </div>
             )}
-            <FormControl>
-              <div className="flex items-center space-x-2">
-                <div className="relative w-full">
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    className="cursor-pointer"
-                    onChange={handleImageChange}
-                    {...fieldProps}
-                  />
-                </div>
-              </div>
-            </FormControl>
-            {editingProduct?.image_url && !imagePreview && (
-              <div className="text-sm text-muted-foreground mt-2">
-                Current image: {editingProduct.image_url}
-              </div>
-            )}
-            <FormMessage />
           </div>
+          <FormMessage />
         </FormItem>
       )}
     />

@@ -109,14 +109,14 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
         <BasicProductFields form={form} />
         
+        <DescriptionField form={form} />
+        
         <ImageUploadField 
           form={form} 
           imagePreview={imagePreview}
           setImagePreview={setImagePreview}
           editingProduct={editingProduct}
         />
-        
-        <DescriptionField form={form} />
         
         <DialogFooter className="mt-6">
           <Button type="submit" disabled={isUploading}>
