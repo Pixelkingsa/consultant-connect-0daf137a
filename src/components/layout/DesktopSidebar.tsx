@@ -1,7 +1,9 @@
 
 import { Button } from "@/components/ui/button";
-import { LogOut, HelpCircle } from "lucide-react";
+import { LogOut, HelpCircle, Settings } from "lucide-react";
 import { SidebarLinks } from "./SidebarLinks";
+import { Link } from "react-router-dom";
+import { cn } from "@/lib/utils";
 
 interface DesktopSidebarProps {
   isAdmin: boolean;
@@ -20,8 +22,18 @@ export const DesktopSidebar = ({ isAdmin, handleSignOut }: DesktopSidebarProps) 
       
       <SidebarLinks isAdmin={isAdmin} />
       
-      <div className="p-4 mt-auto">
-        <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5" onClick={handleSignOut}>
+      <div className="mt-auto px-4">
+        <Link
+          to="/settings"
+          className={cn(
+            "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition-colors text-gray-300 hover:bg-white/5 hover:text-white"
+          )}
+        >
+          <Settings className="h-4 w-4" />
+          Settings
+        </Link>
+        
+        <Button variant="ghost" className="w-full justify-start text-red-400 hover:text-red-300 hover:bg-white/5 mt-2" onClick={handleSignOut}>
           <LogOut className="h-4 w-4 mr-2" />
           Logout
         </Button>

@@ -7,8 +7,7 @@ import {
   CreditCard,
   Users,
   User,
-  Bell,
-  Settings
+  Bell
 } from "lucide-react";
 
 interface SidebarLinksProps {
@@ -26,7 +25,6 @@ export const SidebarLinks = ({ isAdmin, onMobileItemClick }: SidebarLinksProps) 
     { name: "Referrals", path: "/referrals", icon: <Users className="h-5 w-5" /> },
     { name: "Profile", path: "/profile", icon: <User className="h-5 w-5" /> },
     { name: "News", path: "/news", icon: <Bell className="h-5 w-5" /> },
-    { name: "Settings", path: "/settings", icon: <Settings className="h-5 w-5" /> },
   ];
   
   if (isAdmin) {
