@@ -42,7 +42,22 @@ const ImageUploadField = ({
       render={({ field: { value, onChange, ...fieldProps } }) => (
         <FormItem>
           <FormLabel>Product Image</FormLabel>
-          <div className="flex space-x-4 items-start">
+          <div className="flex items-start gap-4">
+            {imagePreview ? (
+              <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
+                <img 
+                  src={imagePreview} 
+                  alt="Product preview" 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+            ) : (
+              <div className="w-24 h-24 bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 flex-shrink-0">
+                <Image className="h-6 w-6 text-gray-400 mb-1" />
+                <p className="text-xs text-gray-500">No image</p>
+              </div>
+            )}
+            
             <div className="flex-1">
               <FormControl>
                 <Input
@@ -59,21 +74,6 @@ const ImageUploadField = ({
                 </div>
               )}
             </div>
-            
-            {imagePreview ? (
-              <div className="w-24 h-24 rounded-md overflow-hidden border border-gray-200 flex-shrink-0">
-                <img 
-                  src={imagePreview} 
-                  alt="Product preview" 
-                  className="w-full h-full object-cover" 
-                />
-              </div>
-            ) : (
-              <div className="w-24 h-24 bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 flex-shrink-0">
-                <Image className="h-6 w-6 text-gray-400 mb-1" />
-                <p className="text-xs text-gray-500">No image</p>
-              </div>
-            )}
           </div>
           <FormMessage />
         </FormItem>
