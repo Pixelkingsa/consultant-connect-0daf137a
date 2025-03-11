@@ -3,19 +3,15 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
 import { DialogFooter } from "@/components/ui/dialog";
 import { ProductFormValues, productSchema, Product } from "@/types/product";
 import { supabase } from "@/integrations/supabase/client";
-import { Image, Upload } from "lucide-react";
+
+// Import our new components
+import BasicProductFields from "./BasicProductFields";
+import DescriptionField from "./DescriptionField";
+import ImageUploadField from "./ImageUploadField";
 
 interface ProductFormProps {
   editingProduct: Product | null;
@@ -68,21 +64,6 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
     }
   }, [editingProduct, form]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Set the image in the form
-    form.setValue("image", file);
-    
-    // Create a preview
-    const objectUrl = URL.createObjectURL(file);
-    setImagePreview(objectUrl);
-    
-    // Clear the image_url as we're using a file upload
-    form.setValue("image_url", "");
-  };
-
   const handleSubmit = async (values: ProductFormValues) => {
     setIsUploading(true);
     try {
@@ -126,124 +107,17 @@ const ProductForm = ({ editingProduct, onSubmit }: ProductFormProps) => {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Product Name</FormLabel>
-              <FormControl>
-                <Input placeholder="Product name" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
+        <BasicProductFields form={form} />
+        
+        <ImageUploadField 
+          form={form} 
+          imagePreview={imagePreview}
+          setImagePreview={setImagePreview}
+          editingProduct={editingProduct}
         />
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Price ($)</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="vp_points"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>VP Points</FormLabel>
-                <FormControl>
-                  <Input type="number" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <FormField
-          control={form.control}
-          name="category"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Category</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="image"
-          render={({ field: { value, onChange, ...fieldProps } }) => (
-            <FormItem>
-              <FormLabel>Product Image</FormLabel>
-              <div className="flex flex-col space-y-4">
-                {imagePreview ? (
-                  <div className="relative rounded-md overflow-hidden border border-gray-200">
-                    <div className="aspect-video w-full bg-gray-50 flex items-center justify-center">
-                      <img 
-                        src={imagePreview} 
-                        alt="Product preview" 
-                        className="max-h-[200px] max-w-full object-contain" 
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  <div className="aspect-video w-full bg-gray-50 flex flex-col items-center justify-center rounded-md border border-dashed border-gray-300 p-4">
-                    <Image className="h-10 w-10 text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">No image selected</p>
-                    <p className="text-xs text-gray-400 mt-1">Upload a product image to preview it here</p>
-                  </div>
-                )}
-                <FormControl>
-                  <div className="flex items-center space-x-2">
-                    <div className="relative w-full">
-                      <Input
-                        type="file"
-                        accept="image/*"
-                        className="cursor-pointer"
-                        onChange={handleImageChange}
-                        {...fieldProps}
-                      />
-                    </div>
-                  </div>
-                </FormControl>
-                {editingProduct?.image_url && !imagePreview && (
-                  <div className="text-sm text-muted-foreground mt-2">
-                    Current image: {editingProduct.image_url}
-                  </div>
-                )}
-                <FormMessage />
-              </div>
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <textarea
-                  className="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 min-h-[100px] resize-y"
-                  placeholder="Product description"
-                  {...field}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
+        <DescriptionField form={form} />
+        
         <DialogFooter className="mt-6">
           <Button type="submit" disabled={isUploading}>
             {isUploading ? "Uploading..." : "Save Product"}
