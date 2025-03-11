@@ -1,7 +1,6 @@
 
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import AdminLayout from "@/components/layout/AdminLayout";
 import ProductsTable from "@/components/admin/products/ProductsTable";
 import ProductDialog from "@/components/admin/products/ProductDialog";
 import { Product, ProductFormValues } from "@/types/product";
@@ -106,35 +105,33 @@ const ProductsManagement = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">Products Management</h1>
-            <p className="text-muted-foreground">Manage your product catalog</p>
-          </div>
-          <ProductDialog
-            isOpen={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            editingProduct={editingProduct}
-            onOpenProductDialog={() => openProductDialog()}
-            onSubmit={onSubmit}
-          />
+    <div className="space-y-8">
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold">Products Management</h1>
+          <p className="text-muted-foreground">Manage your product catalog</p>
         </div>
-
-        {loading ? (
-          <div className="flex justify-center">
-            <div className="animate-pulse">Loading products...</div>
-          </div>
-        ) : (
-          <ProductsTable
-            products={products}
-            onEdit={(product) => openProductDialog(product)}
-            onDelete={handleDeleteProduct}
-          />
-        )}
+        <ProductDialog
+          isOpen={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          editingProduct={editingProduct}
+          onOpenProductDialog={() => openProductDialog()}
+          onSubmit={onSubmit}
+        />
       </div>
-    </AdminLayout>
+
+      {loading ? (
+        <div className="flex justify-center">
+          <div className="animate-pulse">Loading products...</div>
+        </div>
+      ) : (
+        <ProductsTable
+          products={products}
+          onEdit={(product) => openProductDialog(product)}
+          onDelete={handleDeleteProduct}
+        />
+      )}
+    </div>
   );
 };
 

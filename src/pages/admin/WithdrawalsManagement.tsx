@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import {
   Table,
@@ -151,96 +149,95 @@ const WithdrawalsManagement = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Withdrawals Management</h1>
-          <p className="text-muted-foreground">Process and manage consultant withdrawal requests</p>
-        </div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Withdrawals Management</h1>
+        <p className="text-muted-foreground">Process and manage consultant withdrawal requests</p>
+      </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Pending Withdrawals</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalPendingAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Awaiting processing</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Processed This Month</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">${totalProcessedAmount.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground">Successfully completed</p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Total Requests</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{withdrawals.length}</div>
-              <p className="text-xs text-muted-foreground">All time</p>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Pending Withdrawals</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalPendingAmount.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Awaiting processing</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Processed This Month</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">${totalProcessedAmount.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">Successfully completed</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Total Requests</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{withdrawals.length}</div>
+            <p className="text-xs text-muted-foreground">All time</p>
+          </CardContent>
+        </Card>
+      </div>
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <Button onClick={() => fetchWithdrawals()}>
-            Refresh
-          </Button>
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <Select
+            value={statusFilter}
+            onValueChange={setStatusFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="rejected">Rejected</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
+        <Button onClick={() => fetchWithdrawals()}>
+          Refresh
+        </Button>
+      </div>
 
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All Withdrawals</TabsTrigger>
-            <TabsTrigger value="pending">Pending</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-            <TabsTrigger value="rejected">Rejected</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="all" className="mt-4">
-            {renderTable()}
-          </TabsContent>
-          <TabsContent value="pending" className="mt-4">
-            {renderTable("pending")}
-          </TabsContent>
-          <TabsContent value="completed" className="mt-4">
-            {renderTable("completed")}
-          </TabsContent>
-          <TabsContent value="rejected" className="mt-4">
-            {renderTable("rejected")}
-          </TabsContent>
-        </Tabs>
+      <Tabs defaultValue="all">
+        <TabsList>
+          <TabsTrigger value="all">All Withdrawals</TabsTrigger>
+          <TabsTrigger value="pending">Pending</TabsTrigger>
+          <TabsTrigger value="completed">Completed</TabsTrigger>
+          <TabsTrigger value="rejected">Rejected</TabsTrigger>
+        </TabsList>
         
-        {/* Withdrawal details dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Withdrawal Request Details</DialogTitle>
-            </DialogHeader>
-            {viewingWithdrawal && (
-              <div className="space-y-6">
-                <div className="grid grid-cols-2 gap-4">
+        <TabsContent value="all" className="mt-4">
+          {renderTable()}
+        </TabsContent>
+        <TabsContent value="pending" className="mt-4">
+          {renderTable("pending")}
+        </TabsContent>
+        <TabsContent value="completed" className="mt-4">
+          {renderTable("completed")}
+        </TabsContent>
+        <TabsContent value="rejected" className="mt-4">
+          {renderTable("rejected")}
+        </TabsContent>
+      </Tabs>
+      
+      {/* Withdrawal details dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Withdrawal Request Details</DialogTitle>
+          </DialogHeader>
+          {viewingWithdrawal && (
+            <div className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
                   <Card>
                     <CardHeader className="py-2">
                       <CardTitle className="text-sm font-medium">Request Information</CardTitle>

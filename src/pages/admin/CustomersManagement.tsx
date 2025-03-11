@@ -1,8 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import AdminLayout from "@/components/layout/AdminLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -159,224 +157,222 @@ const CustomersManagement = () => {
   };
 
   return (
-    <AdminLayout>
-      <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Customers Management</h1>
-          <p className="text-muted-foreground">Manage your customers and consultants</p>
-        </div>
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold">Customers Management</h1>
+        <p className="text-muted-foreground">Manage your customers and consultants</p>
+      </div>
 
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <div className="flex">
-              <Input
-                placeholder="Search by name..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-[250px]"
-              />
-              <Button 
-                variant="outline" 
-                className="ml-2"
-                onClick={handleSearch}
-              >
-                <Search className="h-4 w-4" />
-              </Button>
-            </div>
-            
-            <Select
-              value={rankFilter}
-              onValueChange={setRankFilter}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-4">
+          <div className="flex">
+            <Input
+              placeholder="Search by name..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-[250px]"
+            />
+            <Button 
+              variant="outline" 
+              className="ml-2"
+              onClick={handleSearch}
             >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filter by rank" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Ranks</SelectItem>
-                {ranks.map((rank) => (
-                  <SelectItem key={rank.id} value={rank.id}>
-                    {rank.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+              <Search className="h-4 w-4" />
+            </Button>
           </div>
-          <Button onClick={() => fetchCustomers()}>
-            Refresh
-          </Button>
+          
+          <Select
+            value={rankFilter}
+            onValueChange={setRankFilter}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Filter by rank" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Ranks</SelectItem>
+              {ranks.map((rank) => (
+                <SelectItem key={rank.id} value={rank.id}>
+                  {rank.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
+        <Button onClick={() => fetchCustomers()}>
+          Refresh
+        </Button>
+      </div>
 
-        {loading ? (
-          <div className="flex justify-center">
-            <div className="animate-pulse">Loading customers...</div>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
+      {loading ? (
+        <div className="flex justify-center">
+          <div className="animate-pulse">Loading customers...</div>
+        </div>
+      ) : (
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort("full_name")}>
+                  Name
+                  <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                </TableHead>
+                <TableHead>Rank</TableHead>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort("personal_volume")}>
+                  Personal Volume
+                  <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                </TableHead>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort("group_volume")}>
+                  Group Volume
+                  <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                </TableHead>
+                <TableHead className="cursor-pointer" onClick={() => toggleSort("team_size")}>
+                  Team Size
+                  <ArrowUpDown className="ml-2 h-4 w-4 inline" />
+                </TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {customers.length === 0 ? (
                 <TableRow>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort("full_name")}>
-                    Name
-                    <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                  </TableHead>
-                  <TableHead>Rank</TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort("personal_volume")}>
-                    Personal Volume
-                    <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort("group_volume")}>
-                    Group Volume
-                    <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                  </TableHead>
-                  <TableHead className="cursor-pointer" onClick={() => toggleSort("team_size")}>
-                    Team Size
-                    <ArrowUpDown className="ml-2 h-4 w-4 inline" />
-                  </TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableCell colSpan={6} className="text-center py-8">
+                    No customers found
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {customers.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
-                      No customers found
+              ) : (
+                customers.map((customer) => (
+                  <TableRow key={customer.id}>
+                    <TableCell className="font-medium">{customer.full_name || "Unnamed User"}</TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="bg-slate-100">
+                        {customer.rank}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{customer.personal_volume}</TableCell>
+                    <TableCell>{customer.group_volume}</TableCell>
+                    <TableCell>{customer.team_size}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => viewCustomerDetails(customer)}
+                      >
+                        <Eye className="mr-2 h-4 w-4" />
+                        View
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  customers.map((customer) => (
-                    <TableRow key={customer.id}>
-                      <TableCell className="font-medium">{customer.full_name || "Unnamed User"}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline" className="bg-slate-100">
-                          {customer.rank}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{customer.personal_volume}</TableCell>
-                      <TableCell>{customer.group_volume}</TableCell>
-                      <TableCell>{customer.team_size}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => viewCustomerDetails(customer)}
-                        >
-                          <Eye className="mr-2 h-4 w-4" />
-                          View
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-        
-        {/* Customer details dialog */}
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-[800px]">
-            <DialogHeader>
-              <DialogTitle>Customer Details</DialogTitle>
-            </DialogHeader>
-            {viewingCustomer && (
-              <div className="space-y-6">
-                <Tabs value={selectedTab} onValueChange={setSelectedTab}>
-                  <TabsList className="mb-4">
-                    <TabsTrigger value="details">Profile Details</TabsTrigger>
-                    <TabsTrigger value="orders">Order History</TabsTrigger>
-                    <TabsTrigger value="team">Team Members</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="details" className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <h3 className="font-semibold">Profile Information</h3>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div className="font-medium">Name:</div>
-                              <div>{viewingCustomer.full_name || "Not set"}</div>
-                              
-                              <div className="font-medium">Email:</div>
-                              <div>{viewingCustomer.email || "Not available"}</div>
-                              
-                              <div className="font-medium">Phone:</div>
-                              <div>{viewingCustomer.phone || "Not set"}</div>
-                              
-                              <div className="font-medium">Joined:</div>
-                              <div>{format(new Date(viewingCustomer.created_at), "MMM d, yyyy")}</div>
-                            </div>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
+      
+      {/* Customer details dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="sm:max-w-[800px]">
+          <DialogHeader>
+            <DialogTitle>Customer Details</DialogTitle>
+          </DialogHeader>
+          {viewingCustomer && (
+            <div className="space-y-6">
+              <Tabs value={selectedTab} onValueChange={setSelectedTab}>
+                <TabsList className="mb-4">
+                  <TabsTrigger value="details">Profile Details</TabsTrigger>
+                  <TabsTrigger value="orders">Order History</TabsTrigger>
+                  <TabsTrigger value="team">Team Members</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="details" className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Card>
+                      <CardContent className="p-4">
+                        <div className="space-y-3">
+                          <h3 className="font-semibold">Profile Information</h3>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="font-medium">Name:</div>
+                            <div>{viewingCustomer.full_name || "Not set"}</div>
+                            
+                            <div className="font-medium">Email:</div>
+                            <div>{viewingCustomer.email || "Not available"}</div>
+                            
+                            <div className="font-medium">Phone:</div>
+                            <div>{viewingCustomer.phone || "Not set"}</div>
+                            
+                            <div className="font-medium">Joined:</div>
+                            <div>{format(new Date(viewingCustomer.created_at), "MMM d, yyyy")}</div>
                           </div>
-                        </CardContent>
-                      </Card>
-                      
-                      <Card>
-                        <CardContent className="p-4">
-                          <div className="space-y-3">
-                            <h3 className="font-semibold">Address Information</h3>
-                            <div className="grid grid-cols-2 gap-2 text-sm">
-                              <div className="font-medium">Address:</div>
-                              <div>{viewingCustomer.address || "Not set"}</div>
-                              
-                              <div className="font-medium">City:</div>
-                              <div>{viewingCustomer.city || "Not set"}</div>
-                              
-                              <div className="font-medium">State:</div>
-                              <div>{viewingCustomer.state || "Not set"}</div>
-                              
-                              <div className="font-medium">Zip:</div>
-                              <div>{viewingCustomer.zip || "Not set"}</div>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </div>
+                        </div>
+                      </CardContent>
+                    </Card>
                     
                     <Card>
                       <CardContent className="p-4">
                         <div className="space-y-3">
-                          <h3 className="font-semibold">Rank & Performance</h3>
-                          <div className="grid grid-cols-4 gap-6 text-sm">
-                            <div>
-                              <div className="font-medium mb-1">Current Rank</div>
-                              <div className="text-lg font-semibold">{viewingCustomer.rank}</div>
-                            </div>
-                            <div>
-                              <div className="font-medium mb-1">Personal Volume</div>
-                              <div className="text-lg font-semibold">{viewingCustomer.personal_volume}</div>
-                            </div>
-                            <div>
-                              <div className="font-medium mb-1">Group Volume</div>
-                              <div className="text-lg font-semibold">{viewingCustomer.group_volume}</div>
-                            </div>
-                            <div>
-                              <div className="font-medium mb-1">Team Size</div>
-                              <div className="text-lg font-semibold">{viewingCustomer.team_size}</div>
-                            </div>
+                          <h3 className="font-semibold">Address Information</h3>
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div className="font-medium">Address:</div>
+                            <div>{viewingCustomer.address || "Not set"}</div>
+                            
+                            <div className="font-medium">City:</div>
+                            <div>{viewingCustomer.city || "Not set"}</div>
+                            
+                            <div className="font-medium">State:</div>
+                            <div>{viewingCustomer.state || "Not set"}</div>
+                            
+                            <div className="font-medium">Zip:</div>
+                            <div>{viewingCustomer.zip || "Not set"}</div>
                           </div>
-                          
-                          <div className="mt-4">
-                            <div className="font-medium mb-2">Update Rank</div>
-                            <div className="flex space-x-2">
-                              <Select
-                                defaultValue={viewingCustomer.rank_id}
-                                onValueChange={(value) => updateCustomerRank(viewingCustomer.id, value)}
-                              >
-                                <SelectTrigger className="w-[200px]">
-                                  <SelectValue placeholder="Select rank" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {ranks.map((rank) => (
-                                    <SelectItem key={rank.id} value={rank.id}>
-                                      {rank.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <Button onClick={() => updateCustomerRank(viewingCustomer.id, viewingCustomer.rank_id)}>
-                                Apply Rank
-                              </Button>
-                            </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                  
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <h3 className="font-semibold">Rank & Performance</h3>
+                        <div className="grid grid-cols-4 gap-6 text-sm">
+                          <div>
+                            <div className="font-medium mb-1">Current Rank</div>
+                            <div className="text-lg font-semibold">{viewingCustomer.rank}</div>
+                          </div>
+                          <div>
+                            <div className="font-medium mb-1">Personal Volume</div>
+                            <div className="text-lg font-semibold">{viewingCustomer.personal_volume}</div>
+                          </div>
+                          <div>
+                            <div className="font-medium mb-1">Group Volume</div>
+                            <div className="text-lg font-semibold">{viewingCustomer.group_volume}</div>
+                          </div>
+                          <div>
+                            <div className="font-medium mb-1">Team Size</div>
+                            <div className="text-lg font-semibold">{viewingCustomer.team_size}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4">
+                          <div className="font-medium mb-2">Update Rank</div>
+                          <div className="flex space-x-2">
+                            <Select
+                              defaultValue={viewingCustomer.rank_id}
+                              onValueChange={(value) => updateCustomerRank(viewingCustomer.id, value)}
+                            >
+                              <SelectTrigger className="w-[200px]">
+                                <SelectValue placeholder="Select rank" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {ranks.map((rank) => (
+                                  <SelectItem key={rank.id} value={rank.id}>
+                                    {rank.name}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Button onClick={() => updateCustomerRank(viewingCustomer.id, viewingCustomer.rank_id)}>
+                              Apply Rank
+                            </Button>
                           </div>
                         </div>
                       </CardContent>
@@ -406,7 +402,7 @@ const CustomersManagement = () => {
           </DialogContent>
         </Dialog>
       </div>
-    </AdminLayout>
+    
   );
 };
 
