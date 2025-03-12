@@ -10,6 +10,7 @@ import CheckoutSummary from "@/components/checkout/CheckoutSummary";
 import EmptyCheckout from "@/components/checkout/EmptyCheckout";
 import CheckoutLoading from "@/components/checkout/CheckoutLoading";
 import { calculateSubtotal, calculateTax, calculateTotal } from "@/lib/checkoutUtils";
+import { CheckoutFormValues } from "@/lib/validationSchemas";
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -19,7 +20,15 @@ const Checkout = () => {
   const [loading, setLoading] = useState(true);
   const [orderId, setOrderId] = useState<string>('');
   const [formIsValid, setFormIsValid] = useState(false);
-  const getFormValues = useRef(() => ({}));
+  const getFormValues = useRef<() => CheckoutFormValues>(() => ({
+    fullName: "",
+    email: "",
+    address: "",
+    city: "",
+    province: "",
+    postalCode: "",
+    phoneNumber: ""
+  }));
 
   useEffect(() => {
     const checkUser = async () => {
