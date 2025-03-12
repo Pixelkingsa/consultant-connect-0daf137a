@@ -1,6 +1,5 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { createHmac } from 'crypto';
 
 // PayFast configuration
 // In a production environment, these would be fetched from environment variables

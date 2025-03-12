@@ -10,4 +10,3 @@ export const checkoutFormSchema = z.object({
   postalCode: z.string().min(4, "Valid South African postal code is required").max(5),
   phoneNumber: z.string().min(10, "Valid South African phone number is required").optional(),
 });
-
