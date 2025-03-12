@@ -6,9 +6,8 @@ export const checkoutFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   address: z.string().min(1, "Address is required"),
   city: z.string().min(1, "City is required"),
-  state: z.string().min(1, "State is required"),
-  zipCode: z.string().min(5, "Valid zip code is required"),
-  cardNumber: z.string().min(16, "Valid card number is required").max(16),
-  cardExpiry: z.string().min(5, "Valid expiry date is required (MM/YY)"),
-  cardCvc: z.string().min(3, "Valid CVC is required").max(4),
+  province: z.string().min(1, "Province is required"),
+  postalCode: z.string().min(4, "Valid South African postal code is required").max(5),
+  phoneNumber: z.string().min(10, "Valid South African phone number is required").optional(),
 });
+

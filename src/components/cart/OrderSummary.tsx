@@ -23,7 +23,7 @@ const OrderSummary = ({ cartItems, onCheckout, paymentMethod, transactionId }: O
   };
   
   const calculateTax = () => {
-    return calculateSubtotal() * 0.08; // 8% tax
+    return calculateSubtotal() * 0.15; // 15% VAT in South Africa
   };
   
   const calculateTotal = () => {
@@ -38,15 +38,15 @@ const OrderSummary = ({ cartItems, onCheckout, paymentMethod, transactionId }: O
       <CardContent className="space-y-4">
         <div className="flex justify-between">
           <span>Subtotal</span>
-          <span>${calculateSubtotal().toFixed(2)}</span>
+          <span>R {calculateSubtotal().toFixed(2)}</span>
         </div>
         <div className="flex justify-between">
-          <span>Tax (8%)</span>
-          <span>${calculateTax().toFixed(2)}</span>
+          <span>Tax (15% VAT)</span>
+          <span>R {calculateTax().toFixed(2)}</span>
         </div>
         <div className="border-t pt-4 flex justify-between font-bold">
-          <span>Total</span>
-          <span>${calculateTotal().toFixed(2)}</span>
+          <span>Total (ZAR)</span>
+          <span>R {calculateTotal().toFixed(2)}</span>
         </div>
         
         {paymentMethod && (
@@ -76,6 +76,10 @@ const OrderSummary = ({ cartItems, onCheckout, paymentMethod, transactionId }: O
         >
           Continue Shopping
         </Button>
+        
+        <div className="text-xs text-muted-foreground">
+          <p>All prices are in South African Rand (ZAR)</p>
+        </div>
       </CardContent>
     </Card>
   );

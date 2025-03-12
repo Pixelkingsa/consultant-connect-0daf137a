@@ -8,9 +8,13 @@ export const calculateSubtotal = (cartItems: CartItem[]) => {
 };
 
 export const calculateTax = (cartItems: CartItem[]) => {
-  return calculateSubtotal(cartItems) * 0.08; // 8% tax
+  return calculateSubtotal(cartItems) * 0.15; // 15% VAT in South Africa
 };
 
 export const calculateTotal = (cartItems: CartItem[]) => {
   return calculateSubtotal(cartItems) + calculateTax(cartItems);
+};
+
+export const formatCurrency = (amount: number) => {
+  return `R ${amount.toFixed(2)}`;
 };

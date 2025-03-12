@@ -14,6 +14,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import PayfastPaymentButton from "@/components/payment/PayfastPaymentButton";
 import { checkoutFormSchema } from "@/lib/validationSchemas";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
 
@@ -24,11 +25,23 @@ interface CheckoutFormProps {
   onCreditCardSuccess: () => void;
 }
 
+const SOUTH_AFRICAN_PROVINCES = [
+  "Eastern Cape",
+  "Free State",
+  "Gauteng",
+  "KwaZulu-Natal",
+  "Limpopo",
+  "Mpumalanga",
+  "Northern Cape",
+  "North West",
+  "Western Cape"
+];
+
 const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: CheckoutFormProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'payfast'>('credit_card');
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'payfast'>('payfast');
 
   // Initialize form
   const form = useForm<CheckoutFormValues>({
@@ -38,11 +51,9 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
       email: "",
       address: "",
       city: "",
-      state: "",
-      zipCode: "",
-      cardNumber: "",
-      cardExpiry: "",
-      cardCvc: "",
+      province: "",
+      postalCode: "",
+      phoneNumber: ""
     },
   });
 
@@ -62,8 +73,9 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
         form.setValue("email", user.email || "");
         form.setValue("address", profileData.address || "");
         form.setValue("city", profileData.city || "");
-        form.setValue("state", profileData.state || "");
-        form.setValue("zipCode", profileData.zip || "");
+        form.setValue("province", profileData.state || "");
+        form.setValue("postalCode", profileData.zip || "");
+        form.setValue("phoneNumber", profileData.phone || "");
       }
     } catch (error) {
       console.error("Error loading profile:", error);
@@ -102,8 +114,9 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
           .update({
             address: values.address,
             city: values.city,
-            state: values.state,
-            zip: values.zipCode,
+            state: values.province,
+            zip: values.postalCode,
+            phone: values.phoneNumber
           })
           .eq("id", user.id);
 
@@ -140,7 +153,7 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Shipping & Payment Information</CardTitle>
+        <CardTitle>South African Shipping & Payment Information</CardTitle>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -175,12 +188,26 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                   )}
                 />
               </div>
+              
+              <FormField
+                control={form.control}
+                name="phoneNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input {...field} type="tel" placeholder="e.g. 0821234567" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />
 
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Shipping Address</h3>
+              <h3 className="text-lg font-medium">South African Shipping Address</h3>
               <FormField
                 control={form.control}
                 name="address"
@@ -194,7 +221,7 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                   </FormItem>
                 )}
               />
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
                   name="city"
@@ -210,31 +237,45 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                 />
                 <FormField
                   control={form.control}
-                  name="state"
+                  name="province"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>State</FormLabel>
+                      <FormLabel>Province</FormLabel>
                       <FormControl>
-                        <Input {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="zipCode"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Zip Code</FormLabel>
-                      <FormControl>
-                        <Input {...field} />
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a province" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SOUTH_AFRICAN_PROVINCES.map((province) => (
+                              <SelectItem key={province} value={province}>
+                                {province}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+              <FormField
+                control={form.control}
+                name="postalCode"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Postal Code</FormLabel>
+                    <FormControl>
+                      <Input {...field} maxLength={5} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
 
             <Separator />
@@ -258,63 +299,47 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                 </Button>
               </div>
 
-              {paymentMethod === 'credit_card' ? (
-                <>
-                  <FormField
-                    control={form.control}
-                    name="cardNumber"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Card Number</FormLabel>
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            placeholder="1234 5678 9012 3456" 
-                            maxLength={16}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="cardExpiry"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Expiry Date</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="MM/YY" 
-                              maxLength={5}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="cardCvc"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>CVC</FormLabel>
-                          <FormControl>
-                            <Input 
-                              {...field} 
-                              placeholder="123" 
-                              maxLength={4}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+              {paymentMethod === 'credit_card' && (
+                <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    All payments are processed in South African Rand (ZAR)
+                  </p>
+                  <div className="grid grid-cols-1 gap-4">
+                    <FormItem>
+                      <FormLabel>Card Number</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="1234 5678 9012 3456" 
+                          maxLength={16}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
                   </div>
-                </>
-              ) : null}
+                  <div className="grid grid-cols-2 gap-4">
+                    <FormItem>
+                      <FormLabel>Expiry Date</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="MM/YY" 
+                          maxLength={5}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                    <FormItem>
+                      <FormLabel>CVC</FormLabel>
+                      <FormControl>
+                        <Input 
+                          placeholder="123" 
+                          maxLength={4}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-4">
@@ -331,7 +356,7 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                       Processing...
                     </>
                   ) : (
-                    "Complete Purchase"
+                    "Complete Purchase (ZAR)"
                   )}
                 </Button>
               ) : (
@@ -349,8 +374,9 @@ const CheckoutForm = ({ user, orderId, calculateTotal, onCreditCardSuccess }: Ch
                       .update({
                         address: form.getValues().address,
                         city: form.getValues().city,
-                        state: form.getValues().state,
-                        zip: form.getValues().zipCode,
+                        state: form.getValues().province,
+                        zip: form.getValues().postalCode,
+                        phone: form.getValues().phoneNumber,
                       })
                       .eq("id", user.id);
                   }}

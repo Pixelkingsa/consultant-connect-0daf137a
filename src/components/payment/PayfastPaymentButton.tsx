@@ -104,7 +104,7 @@ const PayfastPaymentButton = ({
           Processing...
         </>
       ) : (
-        "Pay with PayFast"
+        "Pay with PayFast (ZAR)"
       )}
     </Button>
   );
