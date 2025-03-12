@@ -1,14 +1,15 @@
-import { QueryClient, QueryClientProvider } from "react-query";
-import { ThemeProvider } from "@/context/ThemeContext";
+
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ThemeProvider } from "./components/ThemeProvider";
 import { CartProvider } from "./contexts/cart";
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
-import Home from "@/pages/Home";
-import Shop from "@/pages/Shop";
-import Cart from "@/pages/Cart";
-import Checkout from "@/pages/Checkout";
-import UserDashboard from "@/pages/UserDashboard";
-import Auth from "@/pages/Auth";
-import Orders from "@/pages/Orders";
+import Home from "./pages/Index";
+import Shop from "./pages/Shop";
+import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
+import UserDashboard from "./pages/UserDashboard";
+import Auth from "./pages/Auth";
+import Orders from "./pages/Orders";
 
 const queryClient = new QueryClient();
 
