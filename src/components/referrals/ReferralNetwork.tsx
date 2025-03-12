@@ -1,7 +1,7 @@
 
 import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, GitBranch, UserPlus, X } from "lucide-react";
+import { User, UserPlus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -31,10 +31,11 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
   const [selectedUser, setSelectedUser] = useState<ReferredUser | null>(null);
   
   // Group users by generation level (assuming all are direct referrals for now)
-  const directReferrals = referredUsers.slice(0, Math.min(5, referredUsers.length));
+  const firstLevelReferrals = referredUsers.slice(0, Math.min(3, referredUsers.length));
+  const secondLevelReferrals = referredUsers.slice(3, Math.min(6, referredUsers.length));
   
   // Generate placeholder referrals when no real data is available
-  const placeholderReferrals = referredUsers.length === 0 ? [
+  const placeholderFirstLevel = referredUsers.length === 0 ? [
     {
       id: "placeholder1",
       name: "Jane Smith",
@@ -58,8 +59,33 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
     }
   ] : [];
   
-  // Use real referrals if available, otherwise use placeholders but with visual indicator
-  const displayReferrals = referredUsers.length > 0 ? directReferrals : placeholderReferrals;
+  const placeholderSecondLevel = referredUsers.length === 0 ? [
+    {
+      id: "placeholder4",
+      name: "Mike Wilson",
+      email: "m****@example.com",
+      date: new Date().toISOString(),
+      status: "active"
+    },
+    {
+      id: "placeholder5",
+      name: "Sara Davis",
+      email: "s****@example.com",
+      date: new Date().toISOString(),
+      status: "active"
+    },
+    {
+      id: "placeholder6",
+      name: "Tom Jackson",
+      email: "t****@example.com",
+      date: new Date().toISOString(),
+      status: "active"
+    },
+  ] : [];
+  
+  // Use real referrals if available, otherwise use placeholders
+  const displayFirstLevel = referredUsers.length > 0 ? firstLevelReferrals : placeholderFirstLevel;
+  const displaySecondLevel = referredUsers.length > 0 ? secondLevelReferrals : placeholderSecondLevel;
   
   const handleUserClick = (user: ReferredUser) => {
     // Don't open dialog for placeholder examples
@@ -67,78 +93,111 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
     setSelectedUser(user);
   };
   
-  // Calculate dynamic spacing based on number of referrals
-  const getReferralSpacing = () => {
-    if (displayReferrals.length <= 1) return '0';
-    if (displayReferrals.length === 2) return '12rem';
-    if (displayReferrals.length === 3) return '8rem';
-    return '5rem';
-  };
-  
   return (
     <div className="mb-8">
       <Card className="border rounded-lg overflow-hidden shadow-sm">
         <CardContent className="p-6">
           <h3 className="text-lg font-medium text-gray-700 mb-6">My Referral Network</h3>
-          <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[450px] relative">
+          <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[500px] relative py-8">
+            {/* Background - light blue similar to the image */}
+            <div className="absolute inset-0 bg-blue-50 rounded-lg"></div>
+            
             {/* Root node (You) */}
-            <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="relative z-10">
               <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-purple-600 rounded-full flex items-center justify-center shadow-lg border-2 border-white">
-                  <User className="h-8 w-8 text-white" />
+                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-purple-500">
+                  <User className="h-8 w-8 text-purple-600" />
                 </div>
                 <p className="mt-3 font-medium text-sm">You</p>
                 <p className="text-xs text-muted-foreground mt-1">{profile?.full_name || 'Team Leader'}</p>
               </div>
-              
-              {/* Connecting lines - show if there are referrals or placeholders */}
-              <div className="absolute top-16 left-1/2 w-0.5 h-40 bg-purple-200 transform -translate-x-1/2"></div>
             </div>
             
-            {/* Referral Display - showing real or placeholder referrals */}
-            <div className="absolute top-[180px] left-1/2 transform -translate-x-1/2">
-              <div className="flex justify-center" style={{ gap: getReferralSpacing() }}>
-                {displayReferrals.map((user, index) => (
+            {/* First level referrals */}
+            <div className="mt-16 relative">
+              {/* Vertical connector line to first level */}
+              <div className="absolute top-[-3rem] left-1/2 w-0.5 h-12 bg-purple-300 transform -translate-x-1/2"></div>
+              
+              {/* First level referrals */}
+              <div className="flex justify-center space-x-20 relative">
+                {displayFirstLevel.map((user, index) => (
                   <div key={user.id} className="flex flex-col items-center relative">
-                    {/* Horizontal connection line to separate users */}
-                    {index > 0 && (
-                      <div className="absolute top-6 right-[calc(100%+0.25rem)]" 
-                           style={{ 
-                             width: getReferralSpacing(), 
-                             height: '0.125rem',
-                             backgroundColor: 'rgb(233 213 255)'
-                           }}>
-                      </div>
+                    {/* Connecting lines */}
+                    <div className="absolute top-4 w-20 h-0.5 bg-purple-300">
+                      {index === 0 && <div className="absolute right-0 w-20 h-0.5 bg-purple-300"></div>}
+                      {index === displayFirstLevel.length - 1 && <div className="absolute left-[-20px] w-20 h-0.5 bg-purple-300"></div>}
+                    </div>
+                    
+                    {/* The middle node needs special horizontal connector */}
+                    {index === 1 && displayFirstLevel.length === 3 && (
+                      <div className="absolute left-1/2 top-4 w-40 h-0.5 bg-purple-300 transform -translate-x-1/2"></div>
                     )}
                     
-                    {/* User node with proper styling and click handler */}
+                    {/* User node */}
                     <div 
-                      className={`w-12 h-12 ${referredUsers.length === 0 ? 'bg-purple-400' : 'bg-purple-500'} 
-                                rounded-full flex items-center justify-center shadow-md border-2 border-white
-                                ${referredUsers.length === 0 ? 'border-dashed' : 'cursor-pointer hover:ring-2 hover:ring-purple-300 transition-all'}`}
+                      className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 
+                              ${referredUsers.length === 0 ? 'border-dashed border-purple-300' : 'border-purple-500 cursor-pointer hover:border-purple-700 transition-all'}`}
                       onClick={() => handleUserClick(user)}
                     >
-                      <User className="h-6 w-6 text-white" />
+                      <Avatar className="h-12 w-12 bg-purple-100">
+                        <AvatarFallback className="text-purple-600 font-medium">
+                          {user.name.split(' ').map(n => n[0]).join('')}
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
-                    <div className="mt-3 text-center">
-                      <p className="font-medium text-xs whitespace-nowrap">{user.name}</p>
-                      <p className="text-[10px] text-muted-foreground mt-1">
-                        {referredUsers.length === 0 ? 'Example Referral' : `Joined ${new Date(user.date).toLocaleDateString()}`}
-                      </p>
-                      <div className={`text-[10px] mt-2 font-medium px-2 py-0.5 rounded-full inline-block ${
-                        user.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                      }`}>
-                        {user.status === 'active' ? 'Active' : 'Inactive'}
-                      </div>
-                    </div>
+                    <p className="mt-2 font-medium text-xs max-w-[120px] text-center">{user.name}</p>
+                    {!referredUsers.length && (
+                      <p className="text-[10px] text-muted-foreground mt-1 text-center">Example Referral</p>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
             
+            {/* Second level referrals */}
+            {displaySecondLevel.length > 0 && (
+              <div className="mt-16 relative">
+                {/* Connecting lines from first to second level */}
+                {displayFirstLevel.map((_, index) => (
+                  <div 
+                    key={`connector-${index}`} 
+                    className="absolute top-[-3rem] w-0.5 h-12 bg-purple-300"
+                    style={{ 
+                      left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
+                      transform: 'translateX(-50%)'
+                    }}
+                  />
+                ))}
+                
+                {/* Second level referrals */}
+                <div className="grid grid-cols-3 gap-x-20">
+                  {displaySecondLevel.map((user, index) => (
+                    <div key={user.id} className="flex flex-col items-center">
+                      {/* User node */}
+                      <div 
+                        className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 
+                                ${referredUsers.length === 0 ? 'border-dashed border-purple-300' : 'border-purple-500 cursor-pointer hover:border-purple-700 transition-all'}`}
+                        onClick={() => handleUserClick(user)}
+                      >
+                        <Avatar className="h-12 w-12 bg-purple-100">
+                          <AvatarFallback className="text-purple-600 font-medium">
+                            {user.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <p className="mt-2 font-medium text-xs max-w-[120px] text-center">{user.name}</p>
+                      {!referredUsers.length && (
+                        <p className="text-[10px] text-muted-foreground mt-1 text-center">Example Referral</p>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
             {/* Empty state - only show when no referrals and not showing placeholders */}
             {referredUsers.length === 0 && (
-              <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 text-center opacity-80 w-full max-w-xs px-4">
+              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center w-full max-w-xs px-4">
                 <div className="flex items-center justify-center mb-3">
                   <UserPlus className="h-5 w-5 text-purple-500 mr-2" />
                   <span className="text-sm font-medium text-purple-700">These are placeholder examples</span>
@@ -149,18 +208,6 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 </p>
               </div>
             )}
-            
-            {/* Legend - to help understand the diagram */}
-            <div className="absolute bottom-6 right-6 text-xs flex items-center gap-3">
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-purple-600 rounded-full mr-1.5"></div>
-                <span>You</span>
-              </div>
-              <div className="flex items-center">
-                <div className="w-3 h-3 bg-purple-500 rounded-full mr-1.5"></div>
-                <span>Direct Referrals</span>
-              </div>
-            </div>
           </div>
         </CardContent>
       </Card>
