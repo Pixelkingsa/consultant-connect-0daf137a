@@ -18,11 +18,23 @@ interface NodeAvatarProps {
 }
 
 const NodeAvatar = ({ name, isRoot = false, isPlaceholder = false, onClick, status, email }: NodeAvatarProps) => {
+  // Generate a consistent color based on the name
+  const stringToColor = (str: string) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = hash % 360;
+    return `hsl(${hue}, 70%, 80%)`;
+  };
+  
+  const bgColor = stringToColor(name);
+  
   const avatarContent = isRoot ? (
     <User className="h-8 w-8 text-purple-600" />
   ) : (
-    <Avatar className="h-12 w-12 bg-purple-100">
-      <AvatarFallback className="text-purple-600 font-medium">
+    <Avatar className="h-14 w-14" style={{ backgroundColor: isPlaceholder ? '#f3f3f7' : bgColor }}>
+      <AvatarFallback className="text-purple-700 font-semibold" style={{ fontSize: '1rem' }}>
         {name.split(' ').map(n => n[0]).join('')}
       </AvatarFallback>
     </Avatar>
@@ -31,11 +43,15 @@ const NodeAvatar = ({ name, isRoot = false, isPlaceholder = false, onClick, stat
   const avatarWrapper = (
     <div 
       className={`
-        ${isRoot ? 'w-16 h-16 bg-white' : 'w-14 h-14 bg-white'} 
-        rounded-full flex items-center justify-center shadow-md border-2
-        ${isPlaceholder ? 'border-dashed border-purple-300' : 'border-purple-500 hover:border-purple-700 transition-all'} 
-        ${!isRoot && !isPlaceholder ? 'cursor-pointer transform transition-transform duration-300 hover:scale-110' : ''}
-        ${status === 'active' ? 'ring-2 ring-green-400 ring-offset-2' : ''}
+        ${isRoot ? 'w-20 h-20' : 'w-16 h-16'} 
+        rounded-full flex items-center justify-center
+        ${isPlaceholder ? 
+          'bg-white/70 border-dashed border-2 border-purple-200' : 
+          'bg-white shadow-md border-2 border-purple-200 hover:border-purple-400'
+        } 
+        ${status === 'active' && !isPlaceholder ? 'ring-2 ring-green-400 ring-offset-2' : ''}
+        ${!isRoot && !isPlaceholder ? 'cursor-pointer transition-all duration-300 hover:scale-105' : ''}
+        transform transition-transform
       `}
       onClick={onClick}
     >

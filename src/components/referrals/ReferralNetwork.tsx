@@ -1,7 +1,7 @@
 
 import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Users, Network } from "lucide-react";
 import { ReferredUser } from "./types";
 import RootNode from "./RootNode";
 import NetworkLevel from "./NetworkLevel";
@@ -87,7 +87,10 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
     <div className="mb-8">
       <Card className="border rounded-lg overflow-hidden shadow-sm">
         <CardContent className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-4">My Referral Network</h3>
+          <h3 className="text-lg font-medium text-gray-700 mb-4 flex items-center">
+            <Network className="h-5 w-5 text-purple-500 mr-2" />
+            My Referral Network
+          </h3>
           
           <Tabs defaultValue="network" className="w-full">
             <TabsList className="mb-6 bg-muted/60">
@@ -98,27 +101,32 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
             </TabsList>
             
             <TabsContent value="network">
-              <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[500px] relative py-8">
-                {/* Background - light blue background with subtle pattern */}
-                <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100/70 rounded-lg"></div>
+              <div ref={networkRef} className="flex flex-col items-center justify-start min-h-[600px] relative py-8 px-4">
+                {/* Background - decorative gradient */}
+                <div className="absolute inset-0 bg-gradient-to-b from-purple-50 to-white rounded-lg"></div>
+                
+                {/* Decorative elements */}
+                <div className="absolute top-20 left-10 w-[300px] h-[300px] bg-green-50 rounded-full opacity-30 blur-3xl"></div>
+                <div className="absolute bottom-20 right-10 w-[250px] h-[250px] bg-blue-50 rounded-full opacity-30 blur-3xl"></div>
                 
                 {/* Root node (You) */}
-                <RootNode name={profile?.full_name || 'Team Leader'} />
+                <div className="mb-16 relative">
+                  <RootNode name={profile?.full_name || 'Team Leader'} />
+                </div>
                 
                 {/* First level referrals */}
-                <div className="relative">
-                  {/* Individual connecting lines from root to each first level referral */}
-                  {displayFirstLevel.map((_, index) => {
-                    const position = index - 1; // -1, 0, 1 for left, center, right
-                    const horizontalOffset = position * 160; // Adjust based on your spacing
-                    
+                <div className="mb-20 relative w-full">
+                  {/* Connection lines from root to first level */}
+                  {displayFirstLevel.map((user, index) => {
+                    const horizontal = (index - (displayFirstLevel.length - 1) / 2) * 150;
                     return (
-                      <div 
-                        key={`root-connector-${index}`}
-                        className="absolute top-[-36px] h-12 w-0.5 bg-gradient-to-b from-purple-300 to-purple-500"
+                      <div
+                        key={`connector-${index}`}
+                        className="absolute top-[-64px] left-1/2 w-[2px] bg-gradient-to-b from-purple-300 to-purple-500"
                         style={{
-                          left: `calc(50% + ${horizontalOffset}px)`,
-                          transform: 'translateX(-50%)'
+                          height: '64px',
+                          transform: `translateX(${horizontal}px) translateX(-1px)`,
+                          opacity: referredUsers.length === 0 ? 0.5 : 0.8
                         }}
                       >
                         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
@@ -136,16 +144,14 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 
                 {/* Second level referrals */}
                 {displaySecondLevel.length > 0 && (
-                  <>
-                    {/* Connecting lines from first to second level - now handled individually in NetworkLevel */}
+                  <div className="w-full">
                     <NetworkLevel 
                       users={displaySecondLevel} 
                       isPlaceholders={referredUsers.length === 0}
                       onUserClick={handleUserClick}
                       levelIndex={1}
-                      parentPositions={[0, 1, 2]} // Provide parent positions for connections
                     />
-                  </>
+                  </div>
                 )}
                 
                 {/* Empty state - only show when no referrals and not showing placeholders */}
@@ -159,6 +165,49 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                       Share your referral code to start building your real network. 
                       Your referrals will appear connected to you in this visualization.
                     </p>
+                  </div>
+                )}
+                
+                {/* Network statistics summary */}
+                {referredUsers.length > 0 && (
+                  <div className="mt-12 grid grid-cols-3 gap-6 w-full">
+                    <div className="bg-white border border-purple-100 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center">
+                        <div className="bg-purple-100 p-2 rounded-full mr-3">
+                          <Users className="h-4 w-4 text-purple-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Total Team</p>
+                          <p className="text-xl font-bold">{referredUsers.length}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white border border-green-100 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center">
+                        <div className="bg-green-100 p-2 rounded-full mr-3">
+                          <Users className="h-4 w-4 text-green-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Active Members</p>
+                          <p className="text-xl font-bold">
+                            {referredUsers.filter(u => u.status === "active").length}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white border border-blue-100 rounded-lg p-4 shadow-sm">
+                      <div className="flex items-center">
+                        <div className="bg-blue-100 p-2 rounded-full mr-3">
+                          <Network className="h-4 w-4 text-blue-600" />
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-500">Network Depth</p>
+                          <p className="text-xl font-bold">2 Levels</p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
