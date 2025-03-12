@@ -24,7 +24,7 @@ const NetworkLevel = ({
     <div className={`w-full ${levelClass} relative`}>
       {users.map((user, index) => (
         <div key={user.id} className="relative">
-          {/* Connection lines - drawn for each node */}
+          {/* Connection lines - specific line for each user */}
           {levelIndex > 0 && (
             <div 
               className="absolute left-1/2 -top-12 w-[2px] h-12 bg-gradient-to-b from-purple-300 to-purple-500 -translate-x-1/2"

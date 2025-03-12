@@ -112,34 +112,76 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 {/* Root node (You) */}
                 <div className="mb-16 relative">
                   <RootNode name={profile?.full_name || 'Team Leader'} />
+                
+                  {/* Connection lines from root to first level users */}
+                  {displayFirstLevel.map((user, index) => {
+                    // Calculate position for connection lines
+                    const totalUsers = displayFirstLevel.length;
+                    const angleStep = 40; // degrees between connections
+                    const startAngle = -angleStep * (totalUsers - 1) / 2;
+                    const angle = startAngle + angleStep * index;
+                    const radians = angle * (Math.PI / 180);
+                    
+                    // Line length and positioning
+                    const lineLength = 90; // px
+                    const endX = Math.sin(radians) * lineLength;
+                    const endY = Math.cos(radians) * lineLength;
+                    
+                    return (
+                      <div 
+                        key={`root-connection-${index}`}
+                        className="absolute top-1/2 left-1/2 w-[2px] bg-gradient-to-b from-purple-400 to-purple-600 origin-top"
+                        style={{
+                          height: `${lineLength}px`,
+                          transform: `rotate(${angle + 180}deg)`,
+                          opacity: referredUsers.length === 0 ? 0.5 : 0.8,
+                          zIndex: 1
+                        }}
+                      >
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-300 to-purple-500 animate-pulse"></div>
+                      </div>
+                    );
+                  })}
                 </div>
                 
                 {/* First level referrals */}
                 <div className="mb-20 relative w-full">
-                  {/* Connection lines from root to first level */}
-                  {displayFirstLevel.map((user, index) => {
-                    const horizontal = (index - (displayFirstLevel.length - 1) / 2) * 150;
-                    return (
-                      <div
-                        key={`connector-${index}`}
-                        className="absolute top-[-64px] left-1/2 w-[2px] bg-gradient-to-b from-purple-300 to-purple-500"
-                        style={{
-                          height: '64px',
-                          transform: `translateX(${horizontal}px) translateX(-1px)`,
-                          opacity: referredUsers.length === 0 ? 0.5 : 0.8
-                        }}
-                      >
-                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
-                      </div>
-                    );
-                  })}
-                  
                   <NetworkLevel 
                     users={displayFirstLevel} 
                     isPlaceholders={referredUsers.length === 0}
                     onUserClick={handleUserClick}
                     levelIndex={0}
                   />
+                
+                  {/* Connection lines between first and second level */}
+                  {displayFirstLevel.length > 0 && displaySecondLevel.length > 0 && 
+                    displaySecondLevel.map((user, index) => {
+                      // Connect to closest first level user
+                      const sourceIndex = Math.min(
+                        Math.floor(index / (displaySecondLevel.length / displayFirstLevel.length)), 
+                        displayFirstLevel.length - 1
+                      );
+                      
+                      // Calculate position for these connections
+                      const angle = -20 + (index % 3) * 20; // Spread connections
+                      
+                      return (
+                        <div 
+                          key={`level1-connection-${index}`}
+                          className="absolute bottom-0 w-[2px] h-16 bg-gradient-to-b from-purple-300 to-purple-500"
+                          style={{
+                            left: `${(100 / (displayFirstLevel.length + 1)) * (sourceIndex + 1)}%`,
+                            transform: `translateX(-50%) rotate(${angle}deg)`,
+                            transformOrigin: 'top',
+                            opacity: referredUsers.length === 0 ? 0.5 : 0.8,
+                            zIndex: 1
+                          }}
+                        >
+                          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
+                        </div>
+                      );
+                    })
+                  }
                 </div>
                 
                 {/* Second level referrals */}

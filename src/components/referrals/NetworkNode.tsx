@@ -1,7 +1,7 @@
 
 import { ReferredUser } from "./types";
 import NodeAvatar from "./NodeAvatar";
-import { ShoppingBag, Award } from "lucide-react";
+import { ShoppingBag, Award, Link } from "lucide-react";
 
 interface NetworkNodeProps {
   user: ReferredUser; 
@@ -16,6 +16,11 @@ const NetworkNode = ({ user, isPlaceholder = false, onClick }: NetworkNodeProps)
   return (
     <div className="flex flex-col items-center group animate-fade-in">
       <div className="relative">
+        {/* Connection indicator dot at the top of each avatar */}
+        <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full bg-purple-400 border-2 border-white z-10">
+          <div className="absolute inset-0 rounded-full bg-purple-300 animate-pulse"></div>
+        </div>
+        
         <NodeAvatar 
           name={user.name} 
           isPlaceholder={isPlaceholder} 
@@ -46,6 +51,13 @@ const NetworkNode = ({ user, isPlaceholder = false, onClick }: NetworkNodeProps)
         {!isPlaceholder && user.id.charCodeAt(0) % 7 === 0 && (
           <div className="absolute -left-2 -top-1 bg-blue-100 p-1 rounded-full border border-blue-300">
             <ShoppingBag className="h-3 w-3 text-blue-600" />
+          </div>
+        )}
+        
+        {/* Connection indicator for referrals */}
+        {!isPlaceholder && user.id.charCodeAt(0) % 4 === 0 && (
+          <div className="absolute -left-3 bottom-1 bg-purple-100 p-1 rounded-full border border-purple-300">
+            <Link className="h-3 w-3 text-purple-600" />
           </div>
         )}
       </div>
