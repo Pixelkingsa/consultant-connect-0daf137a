@@ -35,3 +35,29 @@ export interface PersonalInfoFormData {
   state: string;
   zip: string;
 }
+
+export interface PaymentTransaction {
+  id: string;
+  user_id: string;
+  order_id: string;
+  amount: number;
+  payment_method: string;
+  merchant_id: string;
+  merchant_key: string;
+  payment_status: 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+  payment_id?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PayfastPaymentData {
+  amount: number;
+  item_name: string;
+  orderId: string;
+  email_address: string;
+  name_first?: string;
+  name_last?: string;
+  return_url?: string;
+  cancel_url?: string;
+  notify_url?: string;
+}

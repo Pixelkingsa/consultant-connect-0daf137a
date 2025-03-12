@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +13,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { Loader2, Check, ShoppingBag } from "lucide-react";
+import PayfastPaymentButton from "@/components/payment/PayfastPaymentButton";
 
 // Form validation schema
 const checkoutFormSchema = z.object({
@@ -37,6 +37,8 @@ const Checkout = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'payfast'>('credit_card');
+  const [orderId, setOrderId] = useState<string>('');
 
   // Initialize form
   const form = useForm<CheckoutFormValues>({
@@ -107,6 +109,9 @@ const Checkout = () => {
           form.setValue("state", profileData.state || "");
           form.setValue("zipCode", profileData.zip || "");
         }
+
+        // Generate a unique order ID
+        setOrderId(`order-${Date.now()}-${Math.floor(Math.random() * 1000)}`);
       } catch (error) {
         console.error("Error:", error);
         navigate("/auth");
@@ -143,74 +148,74 @@ const Checkout = () => {
       return;
     }
 
-    setSubmitting(true);
+    if (paymentMethod === 'credit_card') {
+      setSubmitting(true);
 
-    try {
-      // Here we would normally process payment, but for demo purposes we'll just simulate it
+      try {
+        // Here we would normally process payment, but for demo purposes we'll just simulate it
       
-      // Generate a unique order ID
-      const orderId = `order-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
-      // Record the transaction
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: user.id,
-          amount: calculateTotal(),
-          transaction_type: "purchase",
-          status: "completed",
-          payment_method: "credit_card",
-          reference_number: orderId,
+        // Record the transaction
+        const { error: transactionError } = await supabase
+          .from("transactions")
+          .insert({
+            user_id: user.id,
+            amount: calculateTotal(),
+            transaction_type: "purchase",
+            status: "completed",
+            payment_method: "credit_card",
+            reference_number: orderId,
+          });
+
+        if (transactionError) {
+          throw new Error("Failed to record transaction");
+        }
+
+        // Clear the cart
+        const { error: clearCartError } = await supabase
+          .from("cart_items")
+          .delete()
+          .eq("user_id", user.id);
+
+        if (clearCartError) {
+          throw new Error("Failed to clear cart");
+        }
+
+        // Update user profile with shipping information
+        const { error: profileUpdateError } = await supabase
+          .from("profiles")
+          .update({
+            address: values.address,
+            city: values.city,
+            state: values.state,
+            zip: values.zipCode,
+          })
+          .eq("id", user.id);
+
+        if (profileUpdateError) {
+          console.error("Failed to update profile:", profileUpdateError);
+          // Non-critical error, so we don't throw
+        }
+
+        // Show success message
+        toast({
+          title: "Order Placed!",
+          description: `Your order #${orderId.substring(6, 14)} has been placed successfully.`,
         });
 
-      if (transactionError) {
-        throw new Error("Failed to record transaction");
+        // Navigate to a success page or dashboard
+        navigate("/orders");
+      } catch (error) {
+        console.error("Checkout error:", error);
+        toast({
+          title: "Checkout Failed",
+          description: "There was an error processing your order. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setSubmitting(false);
       }
-
-      // Clear the cart
-      const { error: clearCartError } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("user_id", user.id);
-
-      if (clearCartError) {
-        throw new Error("Failed to clear cart");
-      }
-
-      // Update user profile with shipping information
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({
-          address: values.address,
-          city: values.city,
-          state: values.state,
-          zip: values.zipCode,
-        })
-        .eq("id", user.id);
-
-      if (profileUpdateError) {
-        console.error("Failed to update profile:", profileUpdateError);
-        // Non-critical error, so we don't throw
-      }
-
-      // Show success message
-      toast({
-        title: "Order Placed!",
-        description: `Your order #${orderId.substring(6, 14)} has been placed successfully.`,
-      });
-
-      // Navigate to a success page or dashboard
-      navigate("/orders");
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast({
-        title: "Checkout Failed",
-        description: "There was an error processing your order. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmitting(false);
     }
+    // For PayFast, the payment button handles the process
   };
   
   if (loading) {
@@ -345,78 +350,122 @@ const Checkout = () => {
                       <Separator />
 
                       <div className="space-y-4">
-                        <h3 className="text-lg font-medium">Payment Information</h3>
-                        <FormField
-                          control={form.control}
-                          name="cardNumber"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Card Number</FormLabel>
-                              <FormControl>
-                                <Input 
-                                  {...field} 
-                                  placeholder="1234 5678 9012 3456" 
-                                  maxLength={16}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                        <div className="grid grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="cardExpiry"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>Expiry Date</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="MM/YY" 
-                                    maxLength={5}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="cardCvc"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel>CVC</FormLabel>
-                                <FormControl>
-                                  <Input 
-                                    {...field} 
-                                    placeholder="123" 
-                                    maxLength={4}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                        <h3 className="text-lg font-medium">Payment Method</h3>
+                        <div className="flex space-x-4 mb-4">
+                          <Button 
+                            type="button" 
+                            variant={paymentMethod === 'credit_card' ? 'default' : 'outline'}
+                            onClick={() => setPaymentMethod('credit_card')}
+                          >
+                            Credit Card
+                          </Button>
+                          <Button 
+                            type="button" 
+                            variant={paymentMethod === 'payfast' ? 'default' : 'outline'}
+                            onClick={() => setPaymentMethod('payfast')}
+                          >
+                            PayFast
+                          </Button>
                         </div>
+
+                        {paymentMethod === 'credit_card' ? (
+                          <>
+                            <FormField
+                              control={form.control}
+                              name="cardNumber"
+                              render={({ field }) => (
+                                <FormItem>
+                                  <FormLabel>Card Number</FormLabel>
+                                  <FormControl>
+                                    <Input 
+                                      {...field} 
+                                      placeholder="1234 5678 9012 3456" 
+                                      maxLength={16}
+                                    />
+                                  </FormControl>
+                                  <FormMessage />
+                                </FormItem>
+                              )}
+                            />
+                            <div className="grid grid-cols-2 gap-4">
+                              <FormField
+                                control={form.control}
+                                name="cardExpiry"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>Expiry Date</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        placeholder="MM/YY" 
+                                        maxLength={5}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                              <FormField
+                                control={form.control}
+                                name="cardCvc"
+                                render={({ field }) => (
+                                  <FormItem>
+                                    <FormLabel>CVC</FormLabel>
+                                    <FormControl>
+                                      <Input 
+                                        {...field} 
+                                        placeholder="123" 
+                                        maxLength={4}
+                                      />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )}
+                              />
+                            </div>
+                          </>
+                        ) : null}
                       </div>
 
                       <div className="pt-4">
-                        <Button 
-                          type="submit" 
-                          className="w-full" 
-                          size="lg"
-                          disabled={submitting}
-                        >
-                          {submitting ? (
-                            <>
-                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing...
-                            </>
-                          ) : (
-                            "Complete Purchase"
-                          )}
-                        </Button>
+                        {paymentMethod === 'credit_card' ? (
+                          <Button 
+                            type="submit" 
+                            className="w-full" 
+                            size="lg"
+                            disabled={submitting}
+                          >
+                            {submitting ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Processing...
+                              </>
+                            ) : (
+                              "Complete Purchase"
+                            )}
+                          </Button>
+                        ) : (
+                          <PayfastPaymentButton
+                            amount={calculateTotal()}
+                            orderId={orderId}
+                            userEmail={user.email}
+                            userName={form.getValues().fullName}
+                            userId={user.id}
+                            disabled={!form.formState.isValid}
+                            onSuccess={() => {
+                              // Update user profile with shipping information
+                              supabase
+                                .from("profiles")
+                                .update({
+                                  address: form.getValues().address,
+                                  city: form.getValues().city,
+                                  state: form.getValues().state,
+                                  zip: form.getValues().zipCode,
+                                })
+                                .eq("id", user.id);
+                            }}
+                          />
+                        )}
                       </div>
                     </form>
                   </Form>

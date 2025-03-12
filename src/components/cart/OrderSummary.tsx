@@ -3,13 +3,16 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { CartItem } from "@/types/cart";
+import { Badge } from "@/components/ui/badge";
 
 interface OrderSummaryProps {
   cartItems: CartItem[];
   onCheckout: () => void;
+  paymentMethod?: string;
+  transactionId?: string;
 }
 
-const OrderSummary = ({ cartItems, onCheckout }: OrderSummaryProps) => {
+const OrderSummary = ({ cartItems, onCheckout, paymentMethod, transactionId }: OrderSummaryProps) => {
   const navigate = useNavigate();
   
   // Calculate cart totals
@@ -45,6 +48,20 @@ const OrderSummary = ({ cartItems, onCheckout }: OrderSummaryProps) => {
           <span>Total</span>
           <span>${calculateTotal().toFixed(2)}</span>
         </div>
+        
+        {paymentMethod && (
+          <div className="pt-2">
+            <p className="text-sm text-muted-foreground">
+              Payment method: <Badge variant="outline">{paymentMethod}</Badge>
+            </p>
+            {transactionId && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Transaction ID: <span className="font-mono text-xs">{transactionId}</span>
+              </p>
+            )}
+          </div>
+        )}
+        
         <Button 
           className="w-full mt-6" 
           size="lg"

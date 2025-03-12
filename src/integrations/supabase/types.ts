@@ -188,6 +188,48 @@ export type Database = {
           },
         ]
       }
+      payment_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          merchant_id: string
+          merchant_key: string
+          order_id: string
+          payment_id: string | null
+          payment_method: string
+          payment_status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          merchant_id: string
+          merchant_key: string
+          order_id: string
+          payment_id?: string | null
+          payment_method: string
+          payment_status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          merchant_id?: string
+          merchant_key?: string
+          order_id?: string
+          payment_id?: string | null
+          payment_method?: string
+          payment_status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           category: string
