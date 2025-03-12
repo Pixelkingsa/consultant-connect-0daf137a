@@ -1,6 +1,7 @@
+
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 
 import Navbar from "@/components/Navbar";
 import Home from "@/pages/Home";
@@ -12,7 +13,6 @@ import AdminDashboard from "@/pages/AdminDashboard";
 import Profile from "@/pages/Profile";
 import Settings from "@/pages/Settings";
 import Cart from "@/pages/Cart";
-import AppLayout from "@/components/layout/AppLayout";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { CartProvider } from "@/contexts/CartContext";
 
