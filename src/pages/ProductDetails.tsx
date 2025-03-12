@@ -82,7 +82,7 @@ const ProductDetails = () => {
           .from("cart_items")
           .update({ 
             quantity: existingItem.quantity + 1,
-            updated_at: new Date() 
+            updated_at: new Date().toISOString() // Fixed: Convert Date to string
           })
           .eq("id", existingItem.id);
           
