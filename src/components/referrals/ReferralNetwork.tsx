@@ -105,42 +105,45 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 {/* Root node (You) */}
                 <RootNode name={profile?.full_name || 'Team Leader'} />
                 
-                {/* Vertical connector line to first level with animation */}
-                <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500 transform -translate-x-1/2">
-                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
-                </div>
-                
                 {/* First level referrals */}
-                <NetworkLevel 
-                  users={displayFirstLevel} 
-                  isPlaceholders={referredUsers.length === 0}
-                  onUserClick={handleUserClick}
-                  levelIndex={0}
-                />
-                
-                {/* Second level referrals */}
-                {displaySecondLevel.length > 0 && (
-                  <>
-                    {/* Connecting lines from first to second level with animations */}
-                    {displayFirstLevel.map((_, index) => (
+                <div className="relative">
+                  {/* Individual connecting lines from root to each first level referral */}
+                  {displayFirstLevel.map((_, index) => {
+                    const position = index - 1; // -1, 0, 1 for left, center, right
+                    const horizontalOffset = position * 160; // Adjust based on your spacing
+                    
+                    return (
                       <div 
-                        key={`connector-${index}`} 
-                        className="absolute top-[300px] w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500"
-                        style={{ 
-                          left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
+                        key={`root-connector-${index}`}
+                        className="absolute top-[-36px] h-12 w-0.5 bg-gradient-to-b from-purple-300 to-purple-500"
+                        style={{
+                          left: `calc(50% + ${horizontalOffset}px)`,
                           transform: 'translateX(-50%)'
                         }}
                       >
                         <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
                       </div>
-                    ))}
-                    
-                    {/* Second level referrals */}
+                    );
+                  })}
+                  
+                  <NetworkLevel 
+                    users={displayFirstLevel} 
+                    isPlaceholders={referredUsers.length === 0}
+                    onUserClick={handleUserClick}
+                    levelIndex={0}
+                  />
+                </div>
+                
+                {/* Second level referrals */}
+                {displaySecondLevel.length > 0 && (
+                  <>
+                    {/* Connecting lines from first to second level - now handled individually in NetworkLevel */}
                     <NetworkLevel 
                       users={displaySecondLevel} 
                       isPlaceholders={referredUsers.length === 0}
                       onUserClick={handleUserClick}
                       levelIndex={1}
+                      parentPositions={[0, 1, 2]} // Provide parent positions for connections
                     />
                   </>
                 )}
