@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 import { initiatePayfastPayment } from "@/services/payfastService";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +43,13 @@ const PayfastPaymentButton = ({
         firstName = nameParts[0] || "";
         lastName = nameParts.slice(1).join(' ') || "";
       }
+
+      // Get the form values to update the profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
 
       // Initiate PayFast payment
       const paymentInfo = await initiatePayfastPayment({
