@@ -1,8 +1,18 @@
 
 import { useState } from "react";
 import AdminAuthChecker from "./admin/AdminAuthChecker";
+import AdminSidebar from "./admin/AdminSidebar";
+import AdminMobileToggle from "./admin/AdminMobileToggle";
+import { getAdminNavItems } from "./admin/AdminNavItems";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const navItems = getAdminNavItems();
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+  };
+
   return (
     <AdminAuthChecker>
       {(isAdmin) => {
@@ -12,6 +22,18 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
         return (
           <div className="flex h-screen bg-background">
+            {/* Mobile sidebar toggle */}
+            <AdminMobileToggle 
+              sidebarOpen={sidebarOpen}
+              toggleSidebar={toggleSidebar}
+            />
+
+            {/* Sidebar */}
+            <AdminSidebar
+              navItems={navItems}
+              sidebarOpen={sidebarOpen}
+            />
+
             {/* Main content area */}
             <div className="flex-1 flex flex-col overflow-hidden">
               {/* Main content */}
