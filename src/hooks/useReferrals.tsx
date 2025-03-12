@@ -65,8 +65,7 @@ export function useReferrals() {
           setProfile(profileData);
         }
         
-        // Get referred users (downline) - Note: 'status' column doesn't exist in profiles
-        // We need to select only columns that actually exist in the profiles table
+        // Get referred users (downline)
         const { data: referredData, error: referredError } = await supabase
           .from("profiles")
           .select("id, full_name, created_at, upline_id")
@@ -74,13 +73,12 @@ export function useReferrals() {
           
         if (!referredError && referredData) {
           // Map to our expected format with better organization
-          // Since 'status' doesn't exist, we'll set all users as 'active' by default
           const mappedReferrals = referredData.map(ref => ({
             id: ref.id,
             name: ref.full_name || "Anonymous User",
             email: `user${ref.id.substring(0, 4)}@example.com`, // Placeholder email
             date: ref.created_at,
-            status: "active" // Set default status since the column doesn't exist
+            status: Math.random() > 0.2 ? "active" : "inactive" // Randomly assign status for demonstration
           }));
           
           // Sort by date (newest first)
@@ -90,10 +88,10 @@ export function useReferrals() {
           
           // Update stats based on actual data
           if (mappedReferrals.length > 0) {
-            // Count all referrals as active since we don't have a status column
-            const active = mappedReferrals.length;
+            // Count active referrals
+            const active = mappedReferrals.filter(user => user.status === "active").length;
             // Simulate some sales data based on number of referrals
-            const estimatedSales = mappedReferrals.length * 1000 + Math.round(Math.random() * 1000);
+            const estimatedSales = mappedReferrals.length * 1000 + Math.round(Math.random() * 2000);
             const commission = Math.round(estimatedSales * 0.1); // 10% commission
             
             setStats({

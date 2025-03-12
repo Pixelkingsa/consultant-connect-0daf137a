@@ -6,6 +6,10 @@ import { ReferredUser } from "./types";
 import RootNode from "./RootNode";
 import NetworkLevel from "./NetworkLevel";
 import UserDetailDialog from "./UserDetailDialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import ReferralAnalytics from "./ReferralAnalytics";
+import ReferralTimeline from "./ReferralTimeline";
+import ReferralPerformance from "./ReferralPerformance";
 
 interface ReferralNetworkProps {
   referredUsers: ReferredUser[];
@@ -83,68 +87,92 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
     <div className="mb-8">
       <Card className="border rounded-lg overflow-hidden shadow-sm">
         <CardContent className="p-6">
-          <h3 className="text-lg font-medium text-gray-700 mb-6">My Referral Network</h3>
-          <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[500px] relative py-8">
-            {/* Background - light blue background with subtle pattern */}
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100/70 rounded-lg"></div>
+          <h3 className="text-lg font-medium text-gray-700 mb-4">My Referral Network</h3>
+          
+          <Tabs defaultValue="network" className="w-full">
+            <TabsList className="mb-6 bg-muted/60">
+              <TabsTrigger value="network">Network View</TabsTrigger>
+              <TabsTrigger value="analytics">Analytics</TabsTrigger>
+              <TabsTrigger value="timeline">Activity Timeline</TabsTrigger>
+              <TabsTrigger value="performance">Performance</TabsTrigger>
+            </TabsList>
             
-            {/* Root node (You) */}
-            <RootNode name={profile?.full_name || 'Team Leader'} />
-            
-            {/* Vertical connector line to first level with animation */}
-            <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500 transform -translate-x-1/2">
-              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
-            </div>
-            
-            {/* First level referrals */}
-            <NetworkLevel 
-              users={displayFirstLevel} 
-              isPlaceholders={referredUsers.length === 0}
-              onUserClick={handleUserClick}
-              levelIndex={0}
-            />
-            
-            {/* Second level referrals */}
-            {displaySecondLevel.length > 0 && (
-              <>
-                {/* Connecting lines from first to second level with animations */}
-                {displayFirstLevel.map((_, index) => (
-                  <div 
-                    key={`connector-${index}`} 
-                    className="absolute top-[300px] w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500"
-                    style={{ 
-                      left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
-                      transform: 'translateX(-50%)'
-                    }}
-                  >
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
-                  </div>
-                ))}
+            <TabsContent value="network">
+              <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[500px] relative py-8">
+                {/* Background - light blue background with subtle pattern */}
+                <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100/70 rounded-lg"></div>
                 
-                {/* Second level referrals */}
+                {/* Root node (You) */}
+                <RootNode name={profile?.full_name || 'Team Leader'} />
+                
+                {/* Vertical connector line to first level with animation */}
+                <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500 transform -translate-x-1/2">
+                  <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
+                </div>
+                
+                {/* First level referrals */}
                 <NetworkLevel 
-                  users={displaySecondLevel} 
+                  users={displayFirstLevel} 
                   isPlaceholders={referredUsers.length === 0}
                   onUserClick={handleUserClick}
-                  levelIndex={1}
+                  levelIndex={0}
                 />
-              </>
-            )}
-            
-            {/* Empty state - only show when no referrals and not showing placeholders */}
-            {referredUsers.length === 0 && (
-              <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center w-full max-w-xs px-4">
-                <div className="flex items-center justify-center mb-3">
-                  <UserPlus className="h-5 w-5 text-purple-500 mr-2" />
-                  <span className="text-sm font-medium text-purple-700">These are placeholder examples</span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  Share your referral code to start building your real network. 
-                  Your referrals will appear connected to you in this visualization.
-                </p>
+                
+                {/* Second level referrals */}
+                {displaySecondLevel.length > 0 && (
+                  <>
+                    {/* Connecting lines from first to second level with animations */}
+                    {displayFirstLevel.map((_, index) => (
+                      <div 
+                        key={`connector-${index}`} 
+                        className="absolute top-[300px] w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500"
+                        style={{ 
+                          left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
+                          transform: 'translateX(-50%)'
+                        }}
+                      >
+                        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
+                      </div>
+                    ))}
+                    
+                    {/* Second level referrals */}
+                    <NetworkLevel 
+                      users={displaySecondLevel} 
+                      isPlaceholders={referredUsers.length === 0}
+                      onUserClick={handleUserClick}
+                      levelIndex={1}
+                    />
+                  </>
+                )}
+                
+                {/* Empty state - only show when no referrals and not showing placeholders */}
+                {referredUsers.length === 0 && (
+                  <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center w-full max-w-xs px-4">
+                    <div className="flex items-center justify-center mb-3">
+                      <UserPlus className="h-5 w-5 text-purple-500 mr-2" />
+                      <span className="text-sm font-medium text-purple-700">These are placeholder examples</span>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Share your referral code to start building your real network. 
+                      Your referrals will appear connected to you in this visualization.
+                    </p>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </TabsContent>
+            
+            <TabsContent value="analytics">
+              <ReferralAnalytics referrals={referredUsers} isPlaceholder={referredUsers.length === 0} />
+            </TabsContent>
+            
+            <TabsContent value="timeline">
+              <ReferralTimeline referrals={referredUsers} isPlaceholder={referredUsers.length === 0} />
+            </TabsContent>
+            
+            <TabsContent value="performance">
+              <ReferralPerformance referrals={referredUsers} isPlaceholder={referredUsers.length === 0} />
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
       
