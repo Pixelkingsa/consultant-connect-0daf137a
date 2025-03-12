@@ -2,16 +2,17 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Moon, ShoppingCart, Sun } from "lucide-react";
+import { useCart } from "@/contexts/CartContext";
 
 interface DesktopActionsProps {
   theme: string;
   toggleTheme: () => void;
   user: any;
-  cartCount: number;
 }
 
-const DesktopActions = ({ theme, toggleTheme, user, cartCount }: DesktopActionsProps) => {
+const DesktopActions = ({ theme, toggleTheme, user }: DesktopActionsProps) => {
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   
   return (
     <div className="hidden md:flex items-center space-x-4">

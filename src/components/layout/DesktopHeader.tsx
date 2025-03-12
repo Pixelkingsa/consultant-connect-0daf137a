@@ -5,16 +5,17 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, ShoppingCart, User, Settings, LogOut, Search } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
 
 interface DesktopHeaderProps {
   profile: any;
   user: any;
-  cartCount: number;
   handleSignOut: () => void;
 }
 
-export const DesktopHeader = ({ profile, user, cartCount, handleSignOut }: DesktopHeaderProps) => {
+export const DesktopHeader = ({ profile, user, handleSignOut }: DesktopHeaderProps) => {
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   
   return (
     <div className="hidden md:flex items-center justify-between p-4 bg-white border-b">

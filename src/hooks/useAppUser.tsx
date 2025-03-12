@@ -8,27 +8,6 @@ export function useAppUser() {
   const [user, setUser] = useState<any>(null);
   const [profile, setProfile] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
-  
-  // Function to fetch cart count
-  const fetchCartCount = async (userId: string) => {
-    try {
-      const { count, error } = await supabase
-        .from("cart_items")
-        .select("id", { count: 'exact', head: true })
-        .eq("user_id", userId);
-        
-      if (!error) {
-        setCartCount(count || 0);
-      } else {
-        console.error("Error fetching cart count:", error);
-        setCartCount(0);
-      }
-    } catch (error) {
-      console.error("Error counting cart items:", error);
-      setCartCount(0);
-    }
-  };
   
   useEffect(() => {
     const checkUser = async () => {
@@ -52,25 +31,9 @@ export function useAppUser() {
         setProfile(profiles);
         setIsAdmin(profiles.rank === "Admin");
       }
-      
-      // Get cart count
-      await fetchCartCount(user.id);
     };
     
     checkUser();
-    
-    // Setup event listener for cart updates
-    const handleCartUpdate = async () => {
-      if (user?.id) {
-        await fetchCartCount(user.id);
-      }
-    };
-    
-    window.addEventListener('cart-updated', handleCartUpdate);
-    
-    return () => {
-      window.removeEventListener('cart-updated', handleCartUpdate);
-    };
   }, [navigate]);
 
   const handleSignOut = async () => {
@@ -82,7 +45,6 @@ export function useAppUser() {
     user,
     profile,
     isAdmin,
-    cartCount,
     handleSignOut
   };
 }

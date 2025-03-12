@@ -4,17 +4,18 @@ import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "./types";
+import { useCart } from "@/contexts/CartContext";
 
 interface MobileMenuProps {
   isMobileMenuOpen: boolean;
   links: NavLink[];
   user: any;
-  cartCount: number;
 }
 
-const MobileMenu = ({ isMobileMenuOpen, links, user, cartCount }: MobileMenuProps) => {
+const MobileMenu = ({ isMobileMenuOpen, links, user }: MobileMenuProps) => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   
   return (
     <div

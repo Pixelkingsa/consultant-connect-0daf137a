@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { CartProvider } from "@/contexts/CartContext";
 import Auth from "./pages/Auth";
 import UserDashboard from "./pages/UserDashboard";
 import Shop from "./pages/Shop";
@@ -66,37 +67,39 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider defaultTheme="light" storageKey="vamna-theme">
           <TooltipProvider>
-            <Toaster />
-            <Sonner />
-            
-            {/* Only show Navbar for unauthenticated users */}
-            {!isAuthenticated && <Navbar />}
-            
-            <Routes>
-              <Route path="/" element={<Navigate to="/user-dashboard" replace />} />
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/dashboard" element={<Navigate to="/user-dashboard" replace />} />
-              <Route path="/user-dashboard" element={<UserDashboard />} />
-              <Route path="/shop" element={<Shop />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/referrals" element={<Referrals />} />
-              <Route path="/news" element={<News />} />
-              <Route path="/settings" element={<Settings />} />
+            <CartProvider>
+              <Toaster />
+              <Sonner />
               
-              {/* Admin routes */}
-              <Route path="/admin-dashboard" element={<AdminDashboard />} />
-              <Route path="/admin/products" element={<ProductsManagement />} />
-              <Route path="/admin/orders" element={<OrdersManagement />} />
-              <Route path="/admin/customers" element={<CustomersManagement />} />
-              <Route path="/admin/compensation" element={<CompensationManagement />} />
-              <Route path="/admin/withdrawals" element={<WithdrawalsManagement />} />
+              {/* Only show Navbar for unauthenticated users */}
+              {!isAuthenticated && <Navbar />}
               
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+              <Routes>
+                <Route path="/" element={<Navigate to="/user-dashboard" replace />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Navigate to="/user-dashboard" replace />} />
+                <Route path="/user-dashboard" element={<UserDashboard />} />
+                <Route path="/shop" element={<Shop />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/orders" element={<Orders />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/referrals" element={<Referrals />} />
+                <Route path="/news" element={<News />} />
+                <Route path="/settings" element={<Settings />} />
+                
+                {/* Admin routes */}
+                <Route path="/admin-dashboard" element={<AdminDashboard />} />
+                <Route path="/admin/products" element={<ProductsManagement />} />
+                <Route path="/admin/orders" element={<OrdersManagement />} />
+                <Route path="/admin/customers" element={<CustomersManagement />} />
+                <Route path="/admin/compensation" element={<CompensationManagement />} />
+                <Route path="/admin/withdrawals" element={<WithdrawalsManagement />} />
+                
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </CartProvider>
           </TooltipProvider>
         </ThemeProvider>
       </QueryClientProvider>

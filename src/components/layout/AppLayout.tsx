@@ -12,7 +12,7 @@ interface AppLayoutProps {
 
 const AppLayout = ({ children }: AppLayoutProps) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { user, profile, isAdmin, cartCount, handleSignOut } = useAppUser();
+  const { user, profile, isAdmin, handleSignOut } = useAppUser();
   
   return (
     <div className="min-h-screen flex flex-col">
@@ -37,7 +37,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <MobileHeader 
             profile={profile}
             user={user}
-            cartCount={cartCount}
             setIsMobileMenuOpen={setIsMobileMenuOpen}
             handleSignOut={handleSignOut}
           />
@@ -46,7 +45,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           <DesktopHeader 
             profile={profile}
             user={user}
-            cartCount={cartCount}
             handleSignOut={handleSignOut}
           />
           

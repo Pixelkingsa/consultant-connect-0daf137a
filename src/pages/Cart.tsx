@@ -1,143 +1,30 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import AppLayout from "@/components/layout/AppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Loader2, Trash2, MinusCircle, PlusCircle, ShoppingBag } from "lucide-react";
-import { CartItem } from "@/types/cart";
+import { useCart } from "@/contexts/CartContext";
 
 const Cart = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [user, setUser] = useState<any>(null);
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { cartItems, isLoading, updateCartItem, removeCartItem } = useCart();
   const [updatingItem, setUpdatingItem] = useState<string | null>(null);
-
-  useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const { data: { user }, error } = await supabase.auth.getUser();
-        
-        if (error || !user) {
-          navigate("/auth");
-          return;
-        }
-        
-        setUser(user);
-        
-        // Fetch cart items
-        const { data, error: cartError } = await supabase
-          .from("cart_items")
-          .select(`
-            *,
-            products:product_id (
-              name,
-              price,
-              image_url,
-              vp_points
-            )
-          `)
-          .eq("user_id", user.id)
-          .order("created_at", { ascending: false });
-          
-        if (cartError) {
-          console.error("Error fetching cart items:", cartError);
-          toast({
-            title: "Error",
-            description: "Could not load your cart items.",
-            variant: "destructive",
-          });
-        } else {
-          setCartItems(data || []);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-        navigate("/auth");
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    checkUser();
-  }, [navigate, toast]);
   
-  const updateQuantity = async (itemId: string, newQuantity: number) => {
+  const handleUpdateQuantity = async (itemId: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     
     setUpdatingItem(itemId);
-    
-    try {
-      const { error } = await supabase
-        .from("cart_items")
-        .update({ quantity: newQuantity })
-        .eq("id", itemId);
-        
-      if (error) {
-        console.error("Error updating quantity:", error);
-        toast({
-          title: "Error",
-          description: "Could not update item quantity.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Update local state
-      setCartItems(prev => 
-        prev.map(item => 
-          item.id === itemId 
-            ? { ...item, quantity: newQuantity } 
-            : item
-        )
-      );
-      
-      toast({
-        title: "Cart Updated",
-        description: "Item quantity has been updated.",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setUpdatingItem(null);
-    }
+    await updateCartItem(itemId, newQuantity);
+    setUpdatingItem(null);
   };
   
-  const removeItem = async (itemId: string) => {
+  const handleRemoveItem = async (itemId: string) => {
     setUpdatingItem(itemId);
-    
-    try {
-      const { error } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("id", itemId);
-        
-      if (error) {
-        console.error("Error removing item:", error);
-        toast({
-          title: "Error",
-          description: "Could not remove item from cart.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      // Update local state
-      setCartItems(prev => prev.filter(item => item.id !== itemId));
-      
-      toast({
-        title: "Item Removed",
-        description: "Item has been removed from your cart.",
-      });
-    } catch (error) {
-      console.error("Error:", error);
-    } finally {
-      setUpdatingItem(null);
-    }
+    await removeCartItem(itemId);
+    setUpdatingItem(null);
   };
   
   // Calculate cart totals
@@ -159,7 +46,7 @@ const Cart = () => {
     navigate("/checkout");
   };
   
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-pulse text-center">
@@ -229,7 +116,7 @@ const Cart = () => {
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity - 1)}
                                 disabled={!!updatingItem}
                               >
                                 <MinusCircle className="h-4 w-4" />
@@ -241,7 +128,7 @@ const Cart = () => {
                                 onChange={(e) => {
                                   const newQuantity = parseInt(e.target.value);
                                   if (!isNaN(newQuantity) && newQuantity > 0) {
-                                    updateQuantity(item.id, newQuantity);
+                                    handleUpdateQuantity(item.id, newQuantity);
                                   }
                                 }}
                                 className="w-16 text-center"
@@ -250,7 +137,7 @@ const Cart = () => {
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => handleUpdateQuantity(item.id, item.quantity + 1)}
                                 disabled={!!updatingItem}
                               >
                                 <PlusCircle className="h-4 w-4" />
@@ -263,7 +150,7 @@ const Cart = () => {
                               variant="ghost"
                               size="icon"
                               className="text-destructive"
-                              onClick={() => removeItem(item.id)}
+                              onClick={() => handleRemoveItem(item.id)}
                               disabled={!!updatingItem}
                             >
                               {updatingItem === item.id ? (

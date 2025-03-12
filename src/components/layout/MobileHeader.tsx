@@ -4,11 +4,11 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Menu, ShoppingCart, User, Settings, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useCart } from "@/contexts/CartContext";
 
 interface MobileHeaderProps {
   profile: any;
   user: any;
-  cartCount: number;
   setIsMobileMenuOpen: (open: boolean) => void;
   handleSignOut: () => void;
 }
@@ -16,11 +16,11 @@ interface MobileHeaderProps {
 export const MobileHeader = ({ 
   profile, 
   user, 
-  cartCount, 
   setIsMobileMenuOpen, 
   handleSignOut 
 }: MobileHeaderProps) => {
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   
   return (
     <div className="md:hidden flex items-center justify-between p-4 border-b bg-white">

@@ -14,8 +14,7 @@ const Navbar = () => {
     isScrolled, 
     isMobileMenuOpen, 
     setIsMobileMenuOpen,
-    user, 
-    cartCount,
+    user,
     navLinks 
   } = useNavbar();
   
@@ -38,8 +37,7 @@ const Navbar = () => {
         <DesktopActions 
           theme={theme} 
           toggleTheme={toggleTheme} 
-          user={user} 
-          cartCount={cartCount} 
+          user={user}
         />
         
         <MobileMenuButton 
@@ -52,7 +50,6 @@ const Navbar = () => {
         isMobileMenuOpen={isMobileMenuOpen}
         links={navLinks}
         user={user}
-        cartCount={cartCount}
       />
     </header>
   );
