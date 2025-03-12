@@ -64,10 +64,10 @@ const PersonalInfoForm = ({
       newErrors.phone = "Phone number is required";
     }
     
-    // Zip code validation - must be 5 digits
-    const zipRegex = /^\d{5}(-\d{4})?$/;
-    if (!zipRegex.test(formData.zip)) {
-      newErrors.zip = "Valid 5-digit zip code is required";
+    // South African postal code validation - 4 digits
+    const postalCodeRegex = /^\d{4}$/;
+    if (!postalCodeRegex.test(formData.zip)) {
+      newErrors.zip = "Valid 4-digit South African postal code is required";
     }
     
     setErrors(newErrors);
@@ -197,7 +197,7 @@ const PersonalInfoForm = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="state">State</Label>
+          <Label htmlFor="state">Province</Label>
           <Input 
             id="state"
             name="state"
@@ -207,14 +207,14 @@ const PersonalInfoForm = ({
         </div>
         
         <div className="space-y-2">
-          <Label htmlFor="zip">ZIP Code</Label>
+          <Label htmlFor="zip">Postal Code</Label>
           <Input 
             id="zip"
             name="zip"
             value={formData.zip}
             onChange={handleInputChange}
             className={errors.zip ? 'border-red-500' : ''}
-            placeholder="12345"
+            placeholder="0000"
           />
           {errors.zip && (
             <p className="text-xs text-red-500 mt-1">{errors.zip}</p>
