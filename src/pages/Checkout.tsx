@@ -80,77 +80,6 @@ const Checkout = () => {
     
     checkUser();
   }, [navigate, toast]);
-
-  const handleCreditCardSuccess = async () => {
-    try {
-      const formValues = getFormValues.current();
-      
-      // Record the transaction
-      const { error: transactionError } = await supabase
-        .from("transactions")
-        .insert({
-          user_id: user.id,
-          amount: calculateTotal(cartItems),
-          transaction_type: "purchase",
-          status: "completed",
-          payment_method: "credit_card",
-          reference_number: orderId,
-        });
-
-      if (transactionError) {
-        throw new Error("Failed to record transaction");
-      }
-
-      // Update user profile with shipping information
-      const { error: profileUpdateError } = await supabase
-        .from("profiles")
-        .update({
-          address: formValues.address,
-          city: formValues.city,
-          state: formValues.province,
-          zip: formValues.postalCode,
-          phone: formValues.phoneNumber
-        })
-        .eq("id", user.id);
-
-      if (profileUpdateError) {
-        console.error("Failed to update profile:", profileUpdateError);
-        // Non-critical error, so we don't throw
-      }
-
-      // Clear the cart
-      const { error: clearCartError } = await supabase
-        .from("cart_items")
-        .delete()
-        .eq("user_id", user.id);
-
-      if (clearCartError) {
-        console.error("Failed to clear cart:", clearCartError);
-        toast({
-          title: "Warning",
-          description: "Your order was placed, but we couldn't clear your cart. Please refresh the page.",
-          variant: "destructive",
-        });
-      }
-
-      // Show success message
-      toast({
-        title: "Order Placed!",
-        description: `Your order #${orderId.substring(6, 14)} has been placed successfully.`,
-      });
-
-      // Navigate to a success page or dashboard
-      navigate("/orders");
-    } catch (error) {
-      console.error("Checkout error:", error);
-      toast({
-        title: "Checkout Failed",
-        description: "There was an error processing your order. Please try again.",
-        variant: "destructive",
-      });
-      throw error; // Re-throw to inform the calling component
-    }
-  };
   
   // Wrapper functions for calculations to pass cart items
   const getSubtotal = () => calculateSubtotal(cartItems);
@@ -189,7 +118,6 @@ const Checkout = () => {
                 user={user}
                 orderId={orderId}
                 formIsValid={formIsValid}
-                onCreditCardSuccess={handleCreditCardSuccess}
               />
             </div>
           </div>
