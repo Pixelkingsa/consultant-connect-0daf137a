@@ -40,13 +40,50 @@ const PersonalInfoForm = ({
 }: PersonalInfoFormProps) => {
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState<{[key: string]: string}>({});
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors: {[key: string]: string} = {};
+    
+    // Basic validations
+    if (!formData.full_name.trim()) {
+      newErrors.full_name = "Full name is required";
+    }
+    
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required";
+    }
+    
+    // Zip code validation - must be 5 digits
+    const zipRegex = /^\d{5}(-\d{4})?$/;
+    if (!zipRegex.test(formData.zip)) {
+      newErrors.zip = "Valid 5-digit zip code is required";
+    }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSaveProfile = async () => {
+    if (!validateForm()) {
+      toast({
+        title: "Validation error",
+        description: "Please fix the errors before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setSaving(true);
     try {
       const { error } = await supabase
@@ -94,9 +131,12 @@ const PersonalInfoForm = ({
               name="full_name"
               value={formData.full_name}
               onChange={handleInputChange}
-              className="pl-10"
+              className={`pl-10 ${errors.full_name ? 'border-red-500' : ''}`}
             />
           </div>
+          {errors.full_name && (
+            <p className="text-xs text-red-500 mt-1">{errors.full_name}</p>
+          )}
         </div>
         
         <div className="space-y-2">
@@ -122,9 +162,12 @@ const PersonalInfoForm = ({
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className="pl-10"
+              className={`pl-10 ${errors.phone ? 'border-red-500' : ''}`}
             />
           </div>
+          {errors.phone && (
+            <p className="text-xs text-red-500 mt-1">{errors.phone}</p>
+          )}
         </div>
       </div>
       
@@ -170,7 +213,12 @@ const PersonalInfoForm = ({
             name="zip"
             value={formData.zip}
             onChange={handleInputChange}
+            className={errors.zip ? 'border-red-500' : ''}
+            placeholder="12345"
           />
+          {errors.zip && (
+            <p className="text-xs text-red-500 mt-1">{errors.zip}</p>
+          )}
         </div>
       </div>
       
