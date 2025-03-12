@@ -1,25 +1,11 @@
 
 import { useRef, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { User, UserPlus, X } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose,
-} from "@/components/ui/dialog";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-
-interface ReferredUser {
-  id: string;
-  name: string;
-  email: string;
-  date: string;
-  status: string;
-}
+import { UserPlus } from "lucide-react";
+import { ReferredUser } from "./types";
+import RootNode from "./RootNode";
+import NetworkLevel from "./NetworkLevel";
+import UserDetailDialog from "./UserDetailDialog";
 
 interface ReferralNetworkProps {
   referredUsers: ReferredUser[];
@@ -103,65 +89,27 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
             <div className="absolute inset-0 bg-blue-50 rounded-lg"></div>
             
             {/* Root node (You) */}
-            <div className="relative z-10">
-              <div className="flex flex-col items-center">
-                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-md border-2 border-purple-500">
-                  <User className="h-8 w-8 text-purple-600" />
-                </div>
-                <p className="mt-3 font-medium text-sm">You</p>
-                <p className="text-xs text-muted-foreground mt-1">{profile?.full_name || 'Team Leader'}</p>
-              </div>
-            </div>
+            <RootNode name={profile?.full_name || 'Team Leader'} />
+            
+            {/* Vertical connector line to first level */}
+            <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-purple-300 transform -translate-x-1/2"></div>
             
             {/* First level referrals */}
-            <div className="mt-16 relative">
-              {/* Vertical connector line to first level */}
-              <div className="absolute top-[-3rem] left-1/2 w-0.5 h-12 bg-purple-300 transform -translate-x-1/2"></div>
-              
-              {/* First level referrals */}
-              <div className="flex justify-center space-x-20 relative">
-                {displayFirstLevel.map((user, index) => (
-                  <div key={user.id} className="flex flex-col items-center relative">
-                    {/* Connecting lines */}
-                    <div className="absolute top-4 w-20 h-0.5 bg-purple-300">
-                      {index === 0 && <div className="absolute right-0 w-20 h-0.5 bg-purple-300"></div>}
-                      {index === displayFirstLevel.length - 1 && <div className="absolute left-[-20px] w-20 h-0.5 bg-purple-300"></div>}
-                    </div>
-                    
-                    {/* The middle node needs special horizontal connector */}
-                    {index === 1 && displayFirstLevel.length === 3 && (
-                      <div className="absolute left-1/2 top-4 w-40 h-0.5 bg-purple-300 transform -translate-x-1/2"></div>
-                    )}
-                    
-                    {/* User node */}
-                    <div 
-                      className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 
-                              ${referredUsers.length === 0 ? 'border-dashed border-purple-300' : 'border-purple-500 cursor-pointer hover:border-purple-700 transition-all'}`}
-                      onClick={() => handleUserClick(user)}
-                    >
-                      <Avatar className="h-12 w-12 bg-purple-100">
-                        <AvatarFallback className="text-purple-600 font-medium">
-                          {user.name.split(' ').map(n => n[0]).join('')}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                    <p className="mt-2 font-medium text-xs max-w-[120px] text-center">{user.name}</p>
-                    {!referredUsers.length && (
-                      <p className="text-[10px] text-muted-foreground mt-1 text-center">Example Referral</p>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
+            <NetworkLevel 
+              users={displayFirstLevel} 
+              isPlaceholders={referredUsers.length === 0}
+              onUserClick={handleUserClick}
+              levelIndex={0}
+            />
             
             {/* Second level referrals */}
             {displaySecondLevel.length > 0 && (
-              <div className="mt-16 relative">
+              <>
                 {/* Connecting lines from first to second level */}
                 {displayFirstLevel.map((_, index) => (
                   <div 
                     key={`connector-${index}`} 
-                    className="absolute top-[-3rem] w-0.5 h-12 bg-purple-300"
+                    className="absolute top-[300px] w-0.5 h-12 bg-purple-300"
                     style={{ 
                       left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
                       transform: 'translateX(-50%)'
@@ -170,29 +118,13 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
                 ))}
                 
                 {/* Second level referrals */}
-                <div className="grid grid-cols-3 gap-x-20">
-                  {displaySecondLevel.map((user, index) => (
-                    <div key={user.id} className="flex flex-col items-center">
-                      {/* User node */}
-                      <div 
-                        className={`w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-md border-2 
-                                ${referredUsers.length === 0 ? 'border-dashed border-purple-300' : 'border-purple-500 cursor-pointer hover:border-purple-700 transition-all'}`}
-                        onClick={() => handleUserClick(user)}
-                      >
-                        <Avatar className="h-12 w-12 bg-purple-100">
-                          <AvatarFallback className="text-purple-600 font-medium">
-                            {user.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <p className="mt-2 font-medium text-xs max-w-[120px] text-center">{user.name}</p>
-                      {!referredUsers.length && (
-                        <p className="text-[10px] text-muted-foreground mt-1 text-center">Example Referral</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
+                <NetworkLevel 
+                  users={displaySecondLevel} 
+                  isPlaceholders={referredUsers.length === 0}
+                  onUserClick={handleUserClick}
+                  levelIndex={1}
+                />
+              </>
             )}
             
             {/* Empty state - only show when no referrals and not showing placeholders */}
@@ -213,61 +145,7 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
       </Card>
       
       {/* User Detail Dialog */}
-      <Dialog open={!!selectedUser} onOpenChange={(isOpen) => !isOpen && setSelectedUser(null)}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Referral Details</DialogTitle>
-            <DialogDescription>
-              Information about your referral
-            </DialogDescription>
-          </DialogHeader>
-          
-          {selectedUser && (
-            <div className="space-y-5 py-4">
-              <div className="flex items-center space-x-5">
-                <Avatar className="h-16 w-16 bg-purple-100 text-purple-600">
-                  <AvatarFallback className="text-xl font-semibold">
-                    {selectedUser.name.split(' ').map(n => n[0]).join('')}
-                  </AvatarFallback>
-                </Avatar>
-                
-                <div>
-                  <h3 className="text-lg font-medium">{selectedUser.name}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">{selectedUser.email}</p>
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-6 pt-2">
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Status</p>
-                  <div className={`text-sm mt-2 font-medium px-2 py-1 rounded-full inline-block ${
-                    selectedUser.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
-                  }`}>
-                    {selectedUser.status === 'active' ? 'Active' : 'Inactive'}
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-muted-foreground">Joined</p>
-                  <p className="text-sm mt-2">{new Date(selectedUser.date).toLocaleDateString()}</p>
-                </div>
-              </div>
-              
-              <div className="pt-2">
-                <p className="text-sm font-medium text-muted-foreground mb-3">Recent Activity</p>
-                <div className="bg-muted rounded-md p-4 text-sm">
-                  <p className="text-center text-muted-foreground">Activity data coming soon</p>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          <div className="flex justify-end pt-4">
-            <DialogClose asChild>
-              <Button variant="outline">Close</Button>
-            </DialogClose>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <UserDetailDialog user={selectedUser} onClose={() => setSelectedUser(null)} />
     </div>
   );
 };
