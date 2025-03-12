@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -157,11 +156,7 @@ const Cart = () => {
   };
   
   const handleCheckout = () => {
-    // Placeholder for checkout functionality
-    toast({
-      title: "Checkout",
-      description: "Checkout functionality will be implemented soon.",
-    });
+    navigate("/checkout");
   };
   
   if (loading) {

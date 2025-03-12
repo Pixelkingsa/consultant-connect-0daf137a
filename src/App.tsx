@@ -11,6 +11,7 @@ import Shop from "./pages/Shop";
 import Profile from "./pages/Profile";
 import Orders from "./pages/Orders";
 import Cart from "./pages/Cart";
+import Checkout from "./pages/Checkout";
 import Referrals from "./pages/Referrals";
 import News from "./pages/News";
 import Settings from "./pages/Settings";
@@ -80,6 +81,7 @@ const App = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/orders" element={<Orders />} />
               <Route path="/cart" element={<Cart />} />
+              <Route path="/checkout" element={<Checkout />} />
               <Route path="/referrals" element={<Referrals />} />
               <Route path="/news" element={<News />} />
               <Route path="/settings" element={<Settings />} />
