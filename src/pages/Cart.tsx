@@ -1,7 +1,7 @@
 
 import React from "react";
 import AppLayout from "@/components/layout/AppLayout";
-import { useCart } from "@/hooks/useCart";
+import { useCart } from "@/contexts/CartContext";
 import EmptyCart from "@/components/cart/EmptyCart";
 import CartItemsTable from "@/components/cart/CartItemsTable";
 import OrderSummary from "@/components/cart/OrderSummary";
