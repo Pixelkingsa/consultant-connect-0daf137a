@@ -18,14 +18,18 @@ const NetworkLevel = ({ users, isPlaceholders = false, onUserClick, levelIndex }
           {levelIndex === 0 && (
             <>
               {/* Connecting lines for the first level */}
-              <div className="absolute top-4 w-20 h-0.5 bg-purple-300">
-                {index === 0 && <div className="absolute right-0 w-20 h-0.5 bg-purple-300"></div>}
-                {index === users.length - 1 && <div className="absolute left-[-20px] w-20 h-0.5 bg-purple-300"></div>}
+              <div className="absolute top-4 w-20 h-0.5 bg-gradient-to-r from-purple-200 to-purple-400">
+                {index === 0 && (
+                  <div className="absolute right-0 w-20 h-0.5 bg-gradient-to-r from-purple-200 to-purple-400 animate-pulse"></div>
+                )}
+                {index === users.length - 1 && (
+                  <div className="absolute left-[-20px] w-20 h-0.5 bg-gradient-to-r from-purple-400 to-purple-200 animate-pulse"></div>
+                )}
               </div>
               
               {/* The middle node needs special horizontal connector */}
               {index === 1 && users.length === 3 && (
-                <div className="absolute left-1/2 top-4 w-40 h-0.5 bg-purple-300 transform -translate-x-1/2"></div>
+                <div className="absolute left-1/2 top-4 w-40 h-0.5 bg-gradient-to-r from-purple-300 via-purple-400 to-purple-300 transform -translate-x-1/2 animate-pulse"></div>
               )}
             </>
           )}

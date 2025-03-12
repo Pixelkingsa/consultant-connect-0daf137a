@@ -15,6 +15,8 @@ const NetworkNode = ({ user, isPlaceholder = false, onClick }: NetworkNodeProps)
         name={user.name} 
         isPlaceholder={isPlaceholder} 
         onClick={() => onClick(user)} 
+        status={user.status}
+        email={user.email}
       />
       <p className="mt-2 font-medium text-xs max-w-[120px] text-center">{user.name}</p>
       {isPlaceholder && (

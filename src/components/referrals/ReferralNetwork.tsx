@@ -85,14 +85,16 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
         <CardContent className="p-6">
           <h3 className="text-lg font-medium text-gray-700 mb-6">My Referral Network</h3>
           <div ref={networkRef} className="flex flex-col items-center justify-center min-h-[500px] relative py-8">
-            {/* Background - light blue similar to the image */}
-            <div className="absolute inset-0 bg-blue-50 rounded-lg"></div>
+            {/* Background - light blue background with subtle pattern */}
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-50 to-blue-100/70 rounded-lg"></div>
             
             {/* Root node (You) */}
             <RootNode name={profile?.full_name || 'Team Leader'} />
             
-            {/* Vertical connector line to first level */}
-            <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-purple-300 transform -translate-x-1/2"></div>
+            {/* Vertical connector line to first level with animation */}
+            <div className="absolute top-[140px] left-1/2 w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500 transform -translate-x-1/2">
+              <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
+            </div>
             
             {/* First level referrals */}
             <NetworkLevel 
@@ -105,16 +107,18 @@ const ReferralNetwork = ({ referredUsers, profile }: ReferralNetworkProps) => {
             {/* Second level referrals */}
             {displaySecondLevel.length > 0 && (
               <>
-                {/* Connecting lines from first to second level */}
+                {/* Connecting lines from first to second level with animations */}
                 {displayFirstLevel.map((_, index) => (
                   <div 
                     key={`connector-${index}`} 
-                    className="absolute top-[300px] w-0.5 h-12 bg-purple-300"
+                    className="absolute top-[300px] w-0.5 h-12 bg-gradient-to-b from-purple-300 to-purple-500"
                     style={{ 
                       left: `${index === 0 ? 'calc(50% - 10rem)' : index === 1 ? '50%' : 'calc(50% + 10rem)'}`,
                       transform: 'translateX(-50%)'
                     }}
-                  />
+                  >
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-purple-200 to-purple-400 animate-pulse"></div>
+                  </div>
                 ))}
                 
                 {/* Second level referrals */}
