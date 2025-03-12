@@ -1,56 +1,14 @@
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { CartItem } from "@/types/cart";
 import { toast } from "@/hooks/use-toast";
 
-interface CartContextType {
-  cartItems: CartItem[];
-  cartCount: number;
-  isLoading: boolean;
-  addToCart: (productId: string, quantity: number) => Promise<void>;
-  updateCartItem: (itemId: string, quantity: number) => Promise<void>;
-  removeCartItem: (itemId: string) => Promise<void>;
-  refreshCart: () => Promise<void>;
-}
-
-const CartContext = createContext<CartContextType | undefined>(undefined);
-
-export const CartProvider = ({ children }: { children: ReactNode }) => {
+export const useCartState = (userId: string | null) => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [cartCount, setCartCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [userId, setUserId] = useState<string | null>(null);
-
-  // Check for authenticated user and get ID
-  useEffect(() => {
-    const getUserId = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-      }
-    };
-
-    getUserId();
-    
-    // Listen for auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (session?.user) {
-          setUserId(session.user.id);
-        } else {
-          setUserId(null);
-          setCartItems([]);
-          setCartCount(0);
-        }
-      }
-    );
-    
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
+  
   // Fetch cart when userId changes
   useEffect(() => {
     if (userId) {
@@ -59,7 +17,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       setIsLoading(false);
     }
   }, [userId]);
-
+  
   const refreshCart = async () => {
     if (!userId) return;
     
@@ -222,27 +180,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  return (
-    <CartContext.Provider
-      value={{
-        cartItems,
-        cartCount,
-        isLoading,
-        addToCart,
-        updateCartItem,
-        removeCartItem,
-        refreshCart
-      }}
-    >
-      {children}
-    </CartContext.Provider>
-  );
-};
-
-export const useCart = () => {
-  const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
+  return {
+    cartItems,
+    cartCount,
+    isLoading,
+    setCartItems,
+    setCartCount,
+    refreshCart,
+    addToCart,
+    updateCartItem,
+    removeCartItem
+  };
 };

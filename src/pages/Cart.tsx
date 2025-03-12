@@ -1,8 +1,7 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AppLayout from "@/components/layout/AppLayout";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 import CartItemsList from "@/components/cart/CartItemsList";
 import OrderSummary from "@/components/cart/OrderSummary";
 import EmptyCart from "@/components/cart/EmptyCart";

@@ -1,10 +1,9 @@
-
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { NavLink } from "./types";
-import { useCart } from "@/contexts/CartContext";
+import { useCart } from "@/contexts/cart";
 
 interface MobileMenuProps {
   isMobileMenuOpen: boolean;
