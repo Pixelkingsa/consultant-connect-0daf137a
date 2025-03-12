@@ -24,6 +24,7 @@ export interface ExtendedProfile {
   city?: string;
   state?: string;
   zip?: string;
+  referral_code?: string;
 }
 
 export interface PersonalInfoFormData {

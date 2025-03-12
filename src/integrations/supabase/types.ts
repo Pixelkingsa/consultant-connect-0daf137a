@@ -282,6 +282,7 @@ export type Database = {
           phone: string | null
           rank: string
           rank_id: string | null
+          referral_code: string | null
           state: string | null
           team_size: number
           updated_at: string
@@ -300,6 +301,7 @@ export type Database = {
           phone?: string | null
           rank?: string
           rank_id?: string | null
+          referral_code?: string | null
           state?: string | null
           team_size?: number
           updated_at?: string
@@ -318,6 +320,7 @@ export type Database = {
           phone?: string | null
           rank?: string
           rank_id?: string | null
+          referral_code?: string | null
           state?: string | null
           team_size?: number
           updated_at?: string
@@ -514,6 +517,12 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_referral_code: {
+        Args: {
+          user_full_name: string
+        }
+        Returns: string
+      }
       is_admin: {
         Args: Record<PropertyKey, never>
         Returns: boolean

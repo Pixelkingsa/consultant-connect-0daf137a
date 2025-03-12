@@ -22,10 +22,27 @@ const ReferralSharing = ({ referralCode, referralLink }: ReferralSharingProps) =
   };
 
   const sendReferralEmail = () => {
+    const emailInput = document.getElementById("referral-email") as HTMLInputElement;
+    const email = emailInput.value.trim();
+    
+    if (!email || !/\S+@\S+\.\S+/.test(email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // In a real application, this would send an API request
+    // For now, just show a success toast
     toast({
       title: "Invitation Sent",
       description: "Your referral invitation has been sent successfully.",
     });
+    
+    // Clear the input
+    emailInput.value = "";
   };
 
   return (
@@ -80,6 +97,7 @@ const ReferralSharing = ({ referralCode, referralLink }: ReferralSharingProps) =
                 <p className="text-sm font-medium">Send Invitation via Email</p>
                 <div className="flex gap-2">
                   <Input 
+                    id="referral-email"
                     placeholder="friend@example.com" 
                     type="email"
                   />

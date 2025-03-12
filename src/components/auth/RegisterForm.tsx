@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -40,12 +41,14 @@ const RegisterForm = ({ isLoading, setIsLoading, onSuccess }: RegisterFormProps)
     setIsLoading(true);
     
     try {
+      // Store the referral code to handle in the backend via trigger
       const { data, error } = await supabase.auth.signUp({
         email: registerForm.email,
         password: registerForm.password,
         options: {
           data: {
             full_name: registerForm.fullName,
+            referred_by: registerForm.referralCode || null,
           },
           emailRedirectTo: window.location.origin,
         },
