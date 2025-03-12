@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -10,6 +11,26 @@ export function useNavbar() {
   const [user, setUser] = useState<any>(null);
   const [cartCount, setCartCount] = useState(0);
   const location = useLocation();
+  
+  // Function to fetch cart count
+  const fetchCartCount = async (userId: string) => {
+    try {
+      const { count, error } = await supabase
+        .from("cart_items")
+        .select("id", { count: 'exact', head: true })
+        .eq("user_id", userId);
+        
+      if (!error) {
+        setCartCount(count || 0);
+      } else {
+        console.error("Error fetching cart count:", error);
+        setCartCount(0);
+      }
+    } catch (error) {
+      console.error("Error counting cart items:", error);
+      setCartCount(0);
+    }
+  };
   
   useEffect(() => {
     const handleScroll = () => {
@@ -41,27 +62,25 @@ export function useNavbar() {
           setIsAdmin(profiles[0].id === user.id);
         }
 
-        // Get cart count from the cart_items table
-        try {
-          const { count, error: cartError } = await supabase
-            .from("cart_items")
-            .select("id", { count: 'exact', head: true })
-            .eq("user_id", user.id);
-            
-          if (!cartError) {
-            setCartCount(count || 0);
-          } else {
-            console.error("Error fetching cart count:", cartError);
-            setCartCount(0);
-          }
-        } catch (cartError) {
-          console.error("Error counting cart items:", cartError);
-          setCartCount(0);
-        }
+        // Get cart count
+        await fetchCartCount(user.id);
       }
     };
     
     checkUser();
+    
+    // Setup event listener for cart updates
+    const handleCartUpdate = async () => {
+      if (user?.id) {
+        await fetchCartCount(user.id);
+      }
+    };
+    
+    window.addEventListener('cart-updated', handleCartUpdate);
+    
+    return () => {
+      window.removeEventListener('cart-updated', handleCartUpdate);
+    };
   }, []);
   
   const getNavLinks = (): NavLink[] => {

@@ -1,9 +1,9 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -82,8 +82,9 @@ const ProductCard = ({ id, image, name, price, vp }: ProductCardProps) => {
         });
       }
       
-      // Refresh the page to update cart count in the navbar
-      window.dispatchEvent(new CustomEvent('cart-updated'));
+      // Create and dispatch a custom event to refresh cart count
+      const cartUpdatedEvent = new CustomEvent('cart-updated');
+      window.dispatchEvent(cartUpdatedEvent);
       
     } catch (error: any) {
       console.error("Error adding to cart:", error);
